@@ -1,24 +1,24 @@
 API
 ===
 
-.. automodule:: dls_python3_skeleton
+.. automodule:: i22_bluesky
 
-    ``dls_python3_skeleton``
+    ``i22_bluesky``
     -----------------------------------
 
-This is the internal API reference for dls_python3_skeleton
+This is the internal API reference for i22_bluesky
 
 You can mix verbose text with docstring and signature extraction by
 using ``autoclass`` and ``autofunction`` directives instead of
 ``automodule`` below.
 
-.. data:: dls_python3_skeleton.__version__
+.. data:: i22_bluesky.__version__
     :type: str
 
     Version number as calculated by https://github.com/dls-controls/versiongit
 
-.. automodule:: dls_python3_skeleton.hello
+.. automodule:: i22_bluesky.hello
     :members:
 
-    ``dls_python3_skeleton.hello``
+    ``i22_bluesky.hello``
     -----------------------------------------

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &mdash; i22-bluesky 0.0+untagged.gc31bd1c documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/dls-favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Why is something the way it is" href="../explanations/why-is-something-so.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            i22-bluesky
+              <img src="../_static/dls-logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                master
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/accomplish-a-task.html">How to accomplish a task</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-is-something-so.html">Why is something the way it is</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#i22-bluesky"><code class="docutils literal notranslate"><span class="pre">i22_bluesky</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i22_bluesky.i22_bluesky.__version__"><code class="docutils literal notranslate"><span class="pre">i22_bluesky.__version__</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i22-bluesky-hello"><code class="docutils literal notranslate"><span class="pre">i22_bluesky.hello</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#i22_bluesky.hello.HelloClass"><code class="docutils literal notranslate"><span class="pre">HelloClass</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#i22_bluesky.hello.HelloClass.name"><code class="docutils literal notranslate"><span class="pre">HelloClass.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#i22_bluesky.hello.HelloClass.format_greeting"><code class="docutils literal notranslate"><span class="pre">HelloClass.format_greeting()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#i22_bluesky.hello.say_hello_lots"><code class="docutils literal notranslate"><span class="pre">say_hello_lots()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/DiamondLightSource/i22-bluesky/releases">Releases</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">i22-bluesky</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/reference/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-i22_bluesky">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-i22_bluesky" title="Permalink to this heading"></a></h1>
+<section id="i22-bluesky">
+<h2><code class="docutils literal notranslate"><span class="pre">i22_bluesky</span></code><a class="headerlink" href="#i22-bluesky" title="Permalink to this heading"></a></h2>
+</section>
+<p>This is the internal API reference for i22_bluesky</p>
+<p>You can mix verbose text with docstring and signature extraction by
+using <code class="docutils literal notranslate"><span class="pre">autoclass</span></code> and <code class="docutils literal notranslate"><span class="pre">autofunction</span></code> directives instead of
+<code class="docutils literal notranslate"><span class="pre">automodule</span></code> below.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="i22_bluesky.i22_bluesky.__version__">
+<span class="sig-prename descclassname"><span class="pre">i22_bluesky.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#i22_bluesky.i22_bluesky.__version__" title="Permalink to this definition"></a></dt>
+<dd><p>Version number as calculated by <a class="reference external" href="https://github.com/dls-controls/versiongit">https://github.com/dls-controls/versiongit</a></p>
+</dd></dl>
+
+<span class="target" id="module-i22_bluesky.hello"></span><section id="i22-bluesky-hello">
+<h2><code class="docutils literal notranslate"><span class="pre">i22_bluesky.hello</span></code><a class="headerlink" href="#i22-bluesky-hello" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="i22_bluesky.hello.HelloClass">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">i22_bluesky.hello.</span></span><span class="sig-name descname"><span class="pre">HelloClass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/i22_bluesky/hello.html#HelloClass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#i22_bluesky.hello.HelloClass" title="Permalink to this definition"></a></dt>
+<dd><p>A class whose only purpose in life is to say hello</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – The initial value of the name of the person who gets greeted</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="i22_bluesky.hello.HelloClass.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#i22_bluesky.hello.HelloClass.name" title="Permalink to this definition"></a></dt>
+<dd><p>The name of the person who gets greeted</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="i22_bluesky.hello.HelloClass.format_greeting">
+<span class="sig-name descname"><span class="pre">format_greeting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/i22_bluesky/hello.html#HelloClass.format_greeting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#i22_bluesky.hello.HelloClass.format_greeting" title="Permalink to this definition"></a></dt>
+<dd><p>Return a greeting for <a class="reference internal" href="#i22_bluesky.hello.HelloClass.name" title="i22_bluesky.hello.HelloClass.name"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">name</span></code></a></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">HelloClass</span><span class="p">(</span><span class="s2">&quot;me&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format_greeting</span><span class="p">()</span>
+<span class="go">&#39;Hello me&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="i22_bluesky.hello.say_hello_lots">
+<span class="sig-prename descclassname"><span class="pre">i22_bluesky.hello.</span></span><span class="sig-name descname"><span class="pre">say_hello_lots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hello</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.12)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#i22_bluesky.hello.HelloClass" title="i22_bluesky.hello.HelloClass"><span class="pre">HelloClass</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/i22_bluesky/hello.html#say_hello_lots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#i22_bluesky.hello.say_hello_lots" title="Permalink to this definition"></a></dt>
+<dd><p>Print lots of greetings using the given <a class="reference internal" href="#i22_bluesky.hello.HelloClass" title="i22_bluesky.hello.HelloClass"><code class="xref any py py-class docutils literal notranslate"><span class="pre">HelloClass</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hello</strong> – A <a class="reference internal" href="#i22_bluesky.hello.HelloClass" title="i22_bluesky.hello.HelloClass"><code class="xref any py py-class docutils literal notranslate"><span class="pre">HelloClass</span></code></a> that <a class="reference internal" href="#i22_bluesky.hello.HelloClass.format_greeting" title="i22_bluesky.hello.HelloClass.format_greeting"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">format_greeting</span></code></a> will be called on.
+If not given, use a HelloClass with name=”me”</p></li>
+<li><p><strong>times</strong> – The number of times to call it</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../explanations/why-is-something-so.html" class="btn btn-neutral float-left" title="Why is something the way it is" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+  <div id="other-versions-div" class="rst-versions" data-toggle="rst-versions" role="note" aria-label="Versions" style="visibility: hidden">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Other Versions</span>
+      master
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl id="other-versions-dl"/>
+    </div>
+  </div>
+  <script>
+    function addVersion(name) {
+      var dd = document.createElement("dd");
+      var a = document.createElement("a");
+      a.href = "../../" + name;
+      a.innerText = name;
+      dd.appendChild(a);
+      document.getElementById('other-versions-dl').appendChild(dd);
+    }
+    // Get versions.txt and add a version for each line
+    fetch("../../versions.txt").then(response => {
+      if (response.ok) {
+        document.getElementById('other-versions-div').style.visibility = "visible";
+        return response.text().then(text => text.split(/\r?\n/).forEach(addVersion))
+      }
+    });
+  </script>
+
+
+</body>
+</html>

@@ -4,6 +4,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
   },
   {
+    "version": "hello_world",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/hello_world/"
+  },
+  {
     "version": "move_ophyd_async",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/move_ophyd_async/"
   }

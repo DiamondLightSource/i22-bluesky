@@ -25,14 +25,14 @@ Installing the library
 
 You can now use ``pip`` to install the library and its dependencies::
 
-    $ python3 -m pip install python3-pip-skeleton
+    $ python3 -m pip install i22-bluesky
 
 If you require a feature that is not currently released you can also install
 from github::
 
-    $ python3 -m pip install git+https://github.com/DiamondLightSource/python3-pip-skeleton.git
+    $ python3 -m pip install git+https://github.com/DiamondLightSource/i22-bluesky.git
 
 The library should now be installed and the commandline interface on your path.
 You can check the version that has been installed by typing::
 
-    $ python3-pip-skeleton --version
+    $ i22-bluesky --version

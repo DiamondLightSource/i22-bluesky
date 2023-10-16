@@ -5,7 +5,7 @@ from dls_bluesky_core.stubs.flyables import fly_and_collect
 from dodal.devices.linkam import Linkam
 from ophyd_async.core.flyer import HardwareTriggeredFlyable
 
-from i22_bluesky.devices.panda import RepeatedTrigger
+from i22_bluesky.panda.fly_scanning import RepeatedTrigger
 
 
 # TODO: Make non-flyer signature to allow non-flying with non-flying device?

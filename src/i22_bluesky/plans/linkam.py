@@ -17,20 +17,20 @@ from i22_bluesky.stubs.linkam import scan_linkam
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 # TODO: Define generic plan that follows N temperature sections?
 def linkam_plan(
-        saxs: StandardDetector,
-        waxs: StandardDetector,
-        linkam: Linkam,
-        panda: PandA,
-        start_temp: float,
-        cool_temp: float,
-        cool_step: float,
-        cool_rate: float,
-        heat_temp: float,
-        heat_step: float,
-        heat_rate: float,
-        num_frames: int,
-        exposure: float,
-        metadata: Optional[Dict[str, Any]] = None,
+    saxs: StandardDetector,
+    waxs: StandardDetector,
+    linkam: Linkam,
+    panda: PandA,
+    start_temp: float,
+    cool_temp: float,
+    cool_step: float,
+    cool_rate: float,
+    heat_temp: float,
+    heat_step: float,
+    heat_rate: float,
+    num_frames: int,
+    exposure: float,
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """Cool in steps, then heat constantly, taking collections of num_frames each time::
 
@@ -58,7 +58,8 @@ def linkam_plan(
         heat_rate: rate of change of temperature with time, dT/dt
         num_frames: number of frames to take at each point in temperature
         exposure: exposure time of detectors
-        metadata: metadata: Key-value metadata to include in exported data, defaults to None.
+        metadata: metadata: Key-value metadata to include in exported data,
+            defaults to None.
 
     Returns:
         MsgGenerator: Plan
@@ -99,7 +100,7 @@ def linkam_plan(
         "detectors": [det.name for det in dets],
         "plan_args": plan_args,
         # TODO: Can we pass dimensional hint? motors? shape?
-        "hints": {}
+        "hints": {},
     }
     _md.update(metadata or {})
 

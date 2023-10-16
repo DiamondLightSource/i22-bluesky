@@ -20,10 +20,10 @@ for the i22 instance of BlueAPI.
 
 .. code-block:: yaml
 
-env:
-  sources:
-    - kind: planFunctions
-      module: i22-bluesky.plans
+    env:
+      sources:
+        - kind: planFunctions
+          module: i22-bluesky.plans
 
 .. |code_ci| image:: https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml/badge.svg?branch=main
     :target: https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml

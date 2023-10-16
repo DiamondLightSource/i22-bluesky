@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>i22-bluesky &#8212; i22-bluesky 0.1.dev81+gc8ecdf6 documentation</title>
+    <title>i22-bluesky &#8212; i22-bluesky 0.1.dev80+ge67f35c documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794" />
   <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=ac02cc09edc035673794"></script>
 
-    <script src="_static/documentation_options.js?v=7d70bcac"></script>
+    <script src="_static/documentation_options.js?v=f9b9474e"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -406,12 +406,14 @@ document.write(`
   <section id="i22-bluesky">
 <h1>i22-bluesky<a class="headerlink" href="#i22-bluesky" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml"><img alt="Code CI" src="https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml/badge.svg?branch=main" /></a> <a class="reference external" href="https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/docs.yml"><img alt="Docs CI" src="https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/docs.yml/badge.svg?branch=main" /></a> <a class="reference external" href="https://codecov.io/gh/DiamondLightSource/i22-bluesky"><img alt="Test Coverage" src="https://codecov.io/gh/DiamondLightSource/i22-bluesky/branch/main/graph/badge.svg" /></a> <a class="reference external" href="https://pypi.org/project/i22-bluesky"><img alt="Latest PyPI version" src="https://img.shields.io/pypi/v/i22-bluesky.svg" /></a> <a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
-<p>This module is intended to hold plans, stubs and other behaviours that are
-unique to the operation of the i22 beamline at Diamond Light Source, and to
-act as a repository in which development of said plans, stubs and behaviours
-may occur.</p>
-<p>The ‘plans’ package contains functions that describe a full operation which performs an experiment and captures data.
-The ‘stubs’ package contains modular partial instructions that may act as a building block for constructing plans.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This project contains template code only. For documentation on how to
+adopt this skeleton project see
+<a class="reference external" href="https://DiamondLightSource.github.io/python3-pip-skeleton-cli">https://DiamondLightSource.github.io/python3-pip-skeleton-cli</a></p>
+</div>
+<p>This is where you should write a short paragraph that describes what your module does,
+how it does it, and why people should use it.</p>
 <table class="table">
 <tbody>
 <tr class="row-odd"><td><p>PyPI</p></td>
@@ -428,12 +430,16 @@ The ‘stubs’ package contains modular partial instructions that may act as a 
 </tr>
 </tbody>
 </table>
-<p>This repository is also intended to act as a planFunctions configuration source
-for the i22 instance of BlueAPI.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">sources</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">planFunctions</span>
-<span class="w">      </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">i22-bluesky.plans</span>
+<p>This is where you should put some images or code snippets that illustrate
+some relevant examples. If it is a library then you might put some
+introductory code here:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">i22_bluesky</span> <span class="kn">import</span> <span class="n">__version__</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hello i22_bluesky </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or if it is a commandline tool then you might put some example commands here:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m i22_bluesky --version
 </pre></div>
 </div>
 <section id="how-the-documentation-is-structured">

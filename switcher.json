@@ -2,5 +2,9 @@
   {
     "version": "main",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
+  },
+  {
+    "version": "common_behaviour",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/common_behaviour/"
   }
 ]

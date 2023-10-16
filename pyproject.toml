@@ -15,7 +15,10 @@ classifiers = [
 ]
 description = "One line description of your module"
 dependencies = [
-    "typing-extensions;python_version<'3.8'",
+    "bluesky",
+    "dls_dodal @ git+https://github.com/DiamondLightSource/dodal.git@directory_provider",
+    "dls_bluesky_core @ git+https://github.com/DiamondLightSource/dls-bluesky-core.git@i22_functions",
+    "ophyd_async @ git+https://github.com/bluesky/ophyd-async.git@add-detector-logic",
 ] # Add project dependencies here, e.g. ["click", "numpy"]
 dynamic = ["version"]
 license.file = "LICENSE"

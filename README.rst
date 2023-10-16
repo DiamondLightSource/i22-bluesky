@@ -8,6 +8,9 @@ unique to the operation of the i22 beamline at Diamond Light Source, and to
 act as a repository in which development of said plans, stubs and behaviours
 may occur.
 
+The 'plans' package contains functions that describe a full operation which performs an experiment and captures data.
+The 'stubs' package contains modular partial instructions that may act as a building block for constructing plans.
+
 ============== ==============================================================
 PyPI           ``pip install i22-bluesky``
 Source code    https://github.com/DiamondLightSource/i22-bluesky

@@ -3,14 +3,13 @@ i22-bluesky
 
 |code_ci| |docs_ci| |coverage| |pypi_version| |license|
 
-.. note::
+This module is intended to hold plans, stubs and other behaviours that are
+unique to the operation of the i22 beamline at Diamond Light Source, and to
+act as a repository in which development of said plans, stubs and behaviours
+may occur.
 
-    This project contains template code only. For documentation on how to
-    adopt this skeleton project see
-    https://DiamondLightSource.github.io/python3-pip-skeleton-cli
-
-This is where you should write a short paragraph that describes what your module does,
-how it does it, and why people should use it.
+The 'plans' package contains functions that describe a full operation which performs an experiment and captures data.
+The 'stubs' package contains modular partial instructions that may act as a building block for constructing plans.
 
 ============== ==============================================================
 PyPI           ``pip install i22-bluesky``
@@ -19,19 +18,15 @@ Documentation  https://DiamondLightSource.github.io/i22-bluesky
 Releases       https://github.com/DiamondLightSource/i22-bluesky/releases
 ============== ==============================================================
 
-This is where you should put some images or code snippets that illustrate
-some relevant examples. If it is a library then you might put some
-introductory code here:
+This repository is also intended to act as a planFunctions configuration source
+for the i22 instance of BlueAPI.
 
-.. code-block:: python
+.. code-block:: yaml
 
-    from i22_bluesky import __version__
-
-    print(f"Hello i22_bluesky {__version__}")
-
-Or if it is a commandline tool then you might put some example commands here::
-
-    $ python -m i22_bluesky --version
+    env:
+      sources:
+        - kind: planFunctions
+          module: i22-bluesky.plans
 
 .. |code_ci| image:: https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml/badge.svg?branch=main
     :target: https://github.com/DiamondLightSource/i22-bluesky/actions/workflows/code.yml

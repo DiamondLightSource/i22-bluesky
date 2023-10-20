@@ -6,5 +6,9 @@
   {
     "version": "move_ophyd_async",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/move_ophyd_async/"
+  },
+  {
+    "version": "nd-attributes-xml-setting",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/nd-attributes-xml-setting/"
   }
 ]

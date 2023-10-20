@@ -65,7 +65,7 @@ class PandARepeatedTriggerLogic(TriggerLogic[RepeatedTrigger]):
     async def start(self):
         await self.seq.enable.set("ONE")
         await wait_for_value(self.seq.active, 1, timeout=1)
-        await wait_for_value(self.seq.active, 0, timeout=1)
+        await wait_for_value(self.seq.active, 0, timeout=None)
 
     async def stop(self):
         await self.seq.enable.set("ZERO")

@@ -1,6 +1,8 @@
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import bluesky.preprocessors as bpp
+import bluesky.plan_stubs as bps
 from dls_bluesky_core.core import MsgGenerator
 from dodal.devices.linkam import Linkam
 from ophyd_async.core import (
@@ -10,15 +12,19 @@ from ophyd_async.core import (
 )
 from ophyd_async.panda import PandA
 
+from i22_bluesky.util.settings import load_saxs_linkam_settings
+
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
 
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 # TODO: Define generic plan that follows N temperature sections?
+# Rose TODO: use inject from dls-bluesky-core (ask Joseph)
 def linkam_plan(
     saxs: StandardDetector,
-    waxs: StandardDetector,
+    # waxs: StandardDetector,
+    #tetramm: StandardDetector,
     linkam: Linkam,
     panda: PandA,
     start_temp: float,
@@ -69,7 +75,8 @@ def linkam_plan(
     """
     plan_args = {
         "saxs": repr(saxs),  # TODO: can we take [detectors] and assume saxs is [0]?
-        "waxs": repr(waxs),
+        # "waxs": repr(waxs),
+        #"tetramm": repr(tetramm),
         "linkam": repr(linkam),
         "panda": repr(panda),
         "start_temp": start_temp,
@@ -82,7 +89,8 @@ def linkam_plan(
         "num_frames": num_frames,
         "exposure": exposure,
     }
-    dets = [saxs, waxs]  # and tetramm
+    #dets = [saxs, waxs]
+    dets = [saxs]
     flyer = HardwareTriggeredFlyable(
         SameTriggerDetectorGroupLogic(
             [det.controller for det in dets],
@@ -94,6 +102,7 @@ def linkam_plan(
         # TODO: Or else where should this be/where does it come from?
         # settings={saxs: config_with_temperature_stamping},
         # Or maybe a different object?
+        name="flyer",
     )
     deadtime = max(det.controller.get_deadtime(exposure) for det in dets)
     _md = {
@@ -107,6 +116,7 @@ def linkam_plan(
     @bpp.stage_decorator([flyer])
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():
+        yield from load_saxs_linkam_settings(saxs, Path("/dls_sw/p38/software/test_venv/ndattributexml"))
         # Step down at the cool rate
         yield from scan_linkam(
             linkam=linkam,

@@ -13,10 +13,9 @@ classifiers = [
 ]
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
 dependencies = [
-    "bluesky",
     "dls_dodal @ git+https://github.com/DiamondLightSource/dodal.git@directory_provider",
-    "dls_bluesky_core @ git+https://github.com/DiamondLightSource/dls-bluesky-core.git@i22_functions",
-    "ophyd_async @ git+https://github.com/bluesky/ophyd-async.git@add-detector-logic",
+    "dls_bluesky_core @ git+https://github.com/DiamondLightSource/dls-bluesky-core.git@0.0.2-alpha",
+    "ophyd_async @ git+https://github.com/bluesky/ophyd-async.git",
 ] # Add project dependencies here, e.g. ["click", "numpy"]
 dynamic = ["version"]
 license.file = "LICENSE"

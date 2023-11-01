@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 import bluesky.preprocessors as bpp
 import bluesky.plan_stubs as bps
 from dls_bluesky_core.core import MsgGenerator
-from dodal.devices.linkam import Linkam
+from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import (
     HardwareTriggeredFlyable,
     SameTriggerDetectorGroupLogic,
@@ -17,15 +17,15 @@ from i22_bluesky.util.settings import load_saxs_linkam_settings
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
 
-
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
+
 # TODO: Define generic plan that follows N temperature sections?
 # Rose TODO: use inject from dls-bluesky-core (ask Joseph)
 def linkam_plan(
     saxs: StandardDetector,
     # waxs: StandardDetector,
-    #tetramm: StandardDetector,
-    linkam: Linkam,
+    tetramm: StandardDetector,
+    linkam: Linkam3,
     panda: PandA,
     start_temp: float,
     cool_temp: float,
@@ -76,7 +76,7 @@ def linkam_plan(
     plan_args = {
         "saxs": repr(saxs),  # TODO: can we take [detectors] and assume saxs is [0]?
         # "waxs": repr(waxs),
-        #"tetramm": repr(tetramm),
+        "tetramm": repr(tetramm),
         "linkam": repr(linkam),
         "panda": repr(panda),
         "start_temp": start_temp,
@@ -90,7 +90,7 @@ def linkam_plan(
         "exposure": exposure,
     }
     #dets = [saxs, waxs]
-    dets = [saxs]
+    dets = [saxs, tetramm]
     flyer = HardwareTriggeredFlyable(
         SameTriggerDetectorGroupLogic(
             [det.controller for det in dets],
@@ -116,7 +116,7 @@ def linkam_plan(
     @bpp.stage_decorator([flyer])
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():
-        yield from load_saxs_linkam_settings(saxs, Path("/dls_sw/p38/software/test_venv/ndattributexml"))
+        yield from load_saxs_linkam_settings(saxs, Path("/dls_sw/p38/software/blueapi/scratch/nxattributes"))
         # Step down at the cool rate
         yield from scan_linkam(
             linkam=linkam,

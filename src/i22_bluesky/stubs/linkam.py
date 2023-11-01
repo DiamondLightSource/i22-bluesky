@@ -2,7 +2,7 @@ import bluesky.plan_stubs as bps
 import numpy as np
 from dls_bluesky_core.core import group_uuid, step_to_num
 from dls_bluesky_core.stubs.flyables import fly_and_collect
-from dodal.devices.linkam import Linkam
+from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core.flyer import HardwareTriggeredFlyable
 
 from i22_bluesky.panda.fly_scanning import RepeatedTrigger
@@ -10,7 +10,7 @@ from i22_bluesky.panda.fly_scanning import RepeatedTrigger
 
 # TODO: Make non-flyer signature to allow non-flying with non-flying device?
 def scan_linkam(
-    linkam: Linkam,
+    linkam: Linkam3,
     flyer: HardwareTriggeredFlyable,
     start: float,
     stop: float,

@@ -9,7 +9,8 @@
   drv.trigger_mode: Ext. trig.
   drv.values_per_reading: 10
   hdf.capture: 0
-  hdf.file_name: i22-723531it-hdf
+  hdf.compression: None
+  hdf.file_name: i22-723550it-hdf
   hdf.file_path: /dls/i22/data/2023/cm33873-5
   hdf.file_template: '%s/%s.h5'
   hdf.file_write_mode: Stream
@@ -17,4 +18,5 @@
   hdf.lazy_open: 1
   hdf.num_capture: 0
   hdf.num_extra_dims: 0
+  hdf.position_mode: 0
   hdf.swmr_mode: 1

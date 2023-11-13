@@ -642,7 +642,7 @@
     outf2: [0, 0, 0]
     position: [0, 0, 0]
     repeats: [1, 5, 1]
-    time1: [0, 100000, 0]
+    time1: [59487000, 100000, 0]
     time2: [4000, 1000, 4000]
     trigger:
     - Immediate

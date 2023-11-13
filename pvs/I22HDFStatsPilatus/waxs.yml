@@ -1,0 +1,24 @@
+- cdc.enable_callback: Enable
+  cdc.nd_array_port: TWOML.PIL.stat
+  cdc.nd_attributes_file: ''
+  drv.acquire: 0
+  drv.acquire_time: 0.498975
+  drv.array_counter: 0
+  drv.image_mode: Multiple
+  drv.nd_attributes_file: BL22I-CS-IOC-17App/data/TWOML.PIL.CAM.xml
+  drv.num_images: 999999
+  drv.trigger_mode: Ext. Enable
+  drv.wait_for_plugins: 0
+  hdf.capture: 0
+  hdf.file_name: i22-723531waxs-hdf
+  hdf.file_path: /dls/i22/data/2023/cm33873-5
+  hdf.file_template: '%s/%s.h5'
+  hdf.file_write_mode: Stream
+  hdf.flush_now: 0
+  hdf.lazy_open: 1
+  hdf.num_capture: 0
+  hdf.num_extra_dims: 0
+  hdf.swmr_mode: 1
+  stats.enable_callback: Enable
+  stats.nd_array_port: TWOML.PIL.CAM
+  stats.nd_attributes_file: ''

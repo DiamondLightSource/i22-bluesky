@@ -10,12 +10,16 @@
   drv.values_per_reading: 10
   hdf.capture: 0
   hdf.compression: None
-  hdf.file_name: i22-723550it-hdf
+  hdf.enable_callback: Enable
+  hdf.file_name: i22-723582it-hdf
   hdf.file_path: /dls/i22/data/2023/cm33873-5
   hdf.file_template: '%s/%s.h5'
   hdf.file_write_mode: Stream
   hdf.flush_now: 0
   hdf.lazy_open: 1
+  hdf.nd_array_address: 11
+  hdf.nd_array_port: TTRM2.DRV
+  hdf.nd_attributes_file: ''
   hdf.num_capture: 0
   hdf.num_extra_dims: 0
   hdf.position_mode: 0

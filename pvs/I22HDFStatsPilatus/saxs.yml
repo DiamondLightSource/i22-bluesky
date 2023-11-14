@@ -1,4 +1,5 @@
 - cdc.enable_callback: Disable
+  cdc.nd_array_address: 0
   cdc.nd_array_port: SAXS.PIL.stat
   cdc.nd_attributes_file: ''
   drv.acquire: 0
@@ -11,16 +12,21 @@
   drv.wait_for_plugins: 0
   hdf.capture: 0
   hdf.compression: None
-  hdf.file_name: i22-723550saxs-hdf
+  hdf.enable_callback: Enable
+  hdf.file_name: i22-723582saxs-hdf
   hdf.file_path: /dls/i22/data/2023/cm33873-5
   hdf.file_template: '%s/%s.h5'
   hdf.file_write_mode: Stream
   hdf.flush_now: 0
   hdf.lazy_open: 1
+  hdf.nd_array_address: 0
+  hdf.nd_array_port: SAXS.PIL.stat
+  hdf.nd_attributes_file: ''
   hdf.num_capture: 0
   hdf.num_extra_dims: 0
   hdf.position_mode: 0
   hdf.swmr_mode: 1
   stats.enable_callback: Enable
+  stats.nd_array_address: 0
   stats.nd_array_port: SAXS.PIL.CAM
   stats.nd_attributes_file: BL22I-CS-IOC-16App/data/SAXS.PIL.stat.xml

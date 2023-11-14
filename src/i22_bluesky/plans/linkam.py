@@ -6,17 +6,19 @@ import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject
-
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import free_tetramm
+from ophyd_async.core import (
+    HardwareTriggeredFlyable,
+    SameTriggerDetectorGroupLogic,
+    StandardDetector,
+)
+from ophyd_async.panda import PandA
+
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.stubs.load import load_device
-from i22_bluesky.util.settings import (load_saxs_linkam_settings,
-                                       load_waxs_settings)
-from ophyd_async.core import (HardwareTriggeredFlyable,
-                              SameTriggerDetectorGroupLogic, StandardDetector)
-from ophyd_async.panda import PandA
+from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 

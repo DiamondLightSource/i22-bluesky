@@ -9,8 +9,8 @@ import bluesky.plan_stubs as bps
 def make_stats_sum_xml(path: Path) -> str:
     xml = NDAttributesXML()
     xml.add_param(
-        "STATS_SUM",
-        "SUM",
+        "StatsTotal",
+        "TOTAL",
         NDAttributeDataType.DOUBLE,
         description="Sum of each detector frame",
     )
@@ -32,8 +32,14 @@ def make_saxs_linkam_stamping_xml(linkam: Device, path: Path):
 
 def load_saxs_linkam_settings(linkam: Device, saxs: HDFStatsPilatus, path: Path):
     yield from bps.mv(
-        # saxs.stats.nd_attributes_file,
-        # make_stats_sum_xml(path / "stats_sum_stamping.xml"),
+        saxs.stats.nd_attributes_file,
+        make_stats_sum_xml(path / "stats_sum_stamping.xml"),
         saxs.drv.nd_attributes_file,
         make_saxs_linkam_stamping_xml(linkam, path / "drv_linkam_stamping.xml"),
+    )
+
+def load_waxs_settings(waxs: HDFStatsPilatus, path: Path):
+    yield from bps.mv(
+        waxs.stats.nd_attributes_file,
+        make_stats_sum_xml(path / "stats_sum_stamping.xml"),
     )

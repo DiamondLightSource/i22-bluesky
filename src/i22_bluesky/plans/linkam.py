@@ -13,7 +13,7 @@ from ophyd_async.core import (
 )
 from ophyd_async.panda import PandA
 
-from i22_bluesky.util.settings import load_saxs_linkam_settings
+from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
 
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
@@ -21,7 +21,7 @@ from i22_bluesky.stubs.linkam import scan_linkam
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 
 # TODO: Define generic plan that follows N temperature sections?
-# Rose TODO: use inject from dls-bluesky-core (ask Joseph)
+XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
 
 def linkam_plan(
@@ -115,9 +115,8 @@ def linkam_plan(
     @bpp.stage_decorator([flyer])
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():
-        yield from load_saxs_linkam_settings(
-            linkam, saxs, Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
-        )
+        yield from load_saxs_linkam_settings(linkam, saxs, XML_PATH)
+        yield from load_waxs_settings(waxs, XML_PATH)
         # Step down at the cool rate
         yield from scan_linkam(
             linkam=linkam,

@@ -4,8 +4,10 @@ from dodal.devices.areadetector.pilatus import HDFStatsPilatus
 from pathlib import Path
 
 import bluesky.plan_stubs as bps
+from functools import lru_cache
 
 
+@lru_cache(maxsize=1)
 def make_stats_sum_xml(path: Path) -> str:
     xml = NDAttributesXML()
     xml.add_param(
@@ -18,6 +20,7 @@ def make_stats_sum_xml(path: Path) -> str:
     return str(path)
 
 
+@lru_cache(maxsize=1)
 def make_saxs_linkam_stamping_xml(linkam: Device, path: Path):
     xml = NDAttributesXML()
     pv = linkam.temp.source.split("://")[1]
@@ -37,6 +40,7 @@ def load_saxs_linkam_settings(linkam: Device, saxs: HDFStatsPilatus, path: Path)
         saxs.drv.nd_attributes_file,
         make_saxs_linkam_stamping_xml(linkam, path / "drv_linkam_stamping.xml"),
     )
+
 
 def load_waxs_settings(waxs: HDFStatsPilatus, path: Path):
     yield from bps.mv(

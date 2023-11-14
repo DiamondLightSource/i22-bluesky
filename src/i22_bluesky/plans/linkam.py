@@ -17,6 +17,12 @@ from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_setti
 
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
+from i22_bluesky.stubs.load import load_device
+
+from bluesky.preprocessors import finalize_decorator
+
+from dodal.devices.tetramm import free_tetramm
+from functools import partial
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 
@@ -112,6 +118,17 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
+    yield from load_device(panda)
+    yield from load_device(linkam)
+
+    for det in dets:
+        yield from load_device(det)
+
+    free_first_tetramm = partial(free_tetramm, tetramm1)
+    free_second_tetramm = partial(free_tetramm, tetramm2)
+
+    @finalize_decorator(free_first_tetramm)
+    @finalize_decorator(free_second_tetramm)
     @bpp.stage_decorator([flyer])
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():

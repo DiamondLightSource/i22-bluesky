@@ -2,7 +2,6 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject

@@ -1,10 +1,11 @@
-from ophyd_async.epics.areadetector import NDAttributeDataType, NDAttributesXML
-from ophyd_async.core import Device
-from dodal.devices.areadetector.pilatus import HDFStatsPilatus
+from functools import lru_cache
 from pathlib import Path
 
 import bluesky.plan_stubs as bps
-from functools import lru_cache
+
+from dodal.devices.areadetector.pilatus import HDFStatsPilatus
+from ophyd_async.core import Device
+from ophyd_async.epics.areadetector import NDAttributeDataType, NDAttributesXML
 
 
 @lru_cache(maxsize=1)

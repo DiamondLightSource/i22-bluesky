@@ -1,28 +1,22 @@
+from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import bluesky.preprocessors as bpp
 import bluesky.plan_stubs as bps
-from dls_bluesky_core.core import MsgGenerator
-from dls_bluesky_core.core import inject
+import bluesky.preprocessors as bpp
+from bluesky.preprocessors import finalize_decorator
+from dls_bluesky_core.core import MsgGenerator, inject
+
 from dodal.devices.linkam3 import Linkam3
-from ophyd_async.core import (
-    HardwareTriggeredFlyable,
-    SameTriggerDetectorGroupLogic,
-    StandardDetector,
-)
-from ophyd_async.panda import PandA
-
-from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
-
+from dodal.devices.tetramm import free_tetramm
 from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.stubs.load import load_device
-
-from bluesky.preprocessors import finalize_decorator
-
-from dodal.devices.tetramm import free_tetramm
-from functools import partial
+from i22_bluesky.util.settings import (load_saxs_linkam_settings,
+                                       load_waxs_settings)
+from ophyd_async.core import (HardwareTriggeredFlyable,
+                              SameTriggerDetectorGroupLogic, StandardDetector)
+from ophyd_async.panda import PandA
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 

@@ -2,9 +2,5 @@
   {
     "version": "main",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
-  },
-  {
-    "version": "move_ophyd_async",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/move_ophyd_async/"
   }
 ]

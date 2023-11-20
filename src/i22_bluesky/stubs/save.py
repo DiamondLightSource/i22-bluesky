@@ -15,7 +15,8 @@ def save_device(
     """Saves PV values to a yaml file, optionally ignoring some signals"""
     signals = walk_rw_signals(device)
     values = yield from get_signal_values(signals, ignore=ignore_signals)
-    # units = {n: values.pop(n) for n in list(values) if n.endswith("units")}
+
+    units = {n: values.pop(n) for n in list(values) if n.endswith("units")}
 
     device_directory = ROOT_SAVE_DIR / device.__class__.__name__
     filename = (device.name if not filename_prefix else filename_prefix) + ".yml"
@@ -23,4 +24,4 @@ def save_device(
     if not device_directory.exists():
         device_directory.mkdir()
 
-    save_to_yaml([values], str(device_directory / filename))
+    save_to_yaml([units, values], str(device_directory / filename))

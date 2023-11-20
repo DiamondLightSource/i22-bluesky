@@ -19,7 +19,8 @@ def scan_linkam(
     exposure: float,
     deadtime: float,
     num_frames: int,
-    fly=False,
+    fly: bool=False,
+    sleep:bool = False
 ):
     one_batch = RepeatedTrigger(num=num_frames, width=exposure, deadtime=deadtime)
     start, stop, num = step_to_num(start, stop, step)
@@ -49,4 +50,6 @@ def scan_linkam(
         for temp in temps:
             yield from bps.mv(linkam, temp, flyer, one_batch)
             # Collect at each step
+            if sleep: 
+                yield from bps.sleep(sleep)
             yield from fly_and_collect(flyer)

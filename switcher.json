@@ -2,5 +2,9 @@
   {
     "version": "main",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
+  },
+  {
+    "version": "i22-local-changes",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
   }
 ]

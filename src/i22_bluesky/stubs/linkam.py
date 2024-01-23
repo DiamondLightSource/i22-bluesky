@@ -26,7 +26,8 @@ def scan_linkam(
     yield from bps.mv(linkam.ramp_rate, rate)
     if fly:
         # Do a single batch to start
-        yield from bps.mv(linkam, start, flyer, one_batch)
+        yield from bps.mv(linkam, start)
+        yield from bps.prepare(flyer, one_batch)
         yield from fly_and_collect(flyer)
         # Setup for many batches
         many_batches = RepeatedTrigger(
@@ -36,7 +37,7 @@ def scan_linkam(
             repeats=(num - 1),
             period=abs((stop - start) / (rate / 60)) / (num - 1),
         )
-        yield from bps.mv(flyer, many_batches)
+        yield from bps.prepare(flyer, many_batches)
         # Then start flying, collecting roughly every step
         linkam_group = group_uuid("linkam")
         yield from bps.abs_set(linkam, stop, group=linkam_group, wait=False)
@@ -47,6 +48,7 @@ def scan_linkam(
     else:
         temps = np.linspace(start, stop, num)
         for temp in temps:
-            yield from bps.mv(linkam, temp, flyer, one_batch)
+            yield from bps.mv(linkam, temp)
+            yield from bps.prepare(flyer, one_batch)
             # Collect at each step
             yield from fly_and_collect(flyer)

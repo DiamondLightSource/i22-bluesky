@@ -4,10 +4,6 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
   },
   {
-    "version": "flyer-preparable",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/flyer-preparable/"
-  },
-  {
     "version": "i22-local-changes",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
   }

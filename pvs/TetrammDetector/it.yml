@@ -1,25 +1,20 @@
-- drv.acquire: 0
-  drv.averaging_time: 0.1
+- drv.averaging_time: 0.1
   drv.bias: 1
   drv.bias_volts: 10.0
   drv.geometry: Square
-  drv.num_channels: '4'
+  drv.num_channels: "4"
   drv.range: +- 120 uA
   drv.resolution: 24 bits
-  drv.trigger_mode: Ext. trig.
   drv.values_per_reading: 10
-  hdf.capture: 0
   hdf.compression: None
   hdf.enable_callback: Enable
-  hdf.file_name: i22-723582it-hdf
-  hdf.file_path: /dls/i22/data/2023/cm33873-5
-  hdf.file_template: '%s/%s.h5'
+  hdf.file_template: "%s/%s.h5"
   hdf.file_write_mode: Stream
   hdf.flush_now: 0
   hdf.lazy_open: 1
   hdf.nd_array_address: 11
   hdf.nd_array_port: TTRM2.DRV
-  hdf.nd_attributes_file: ''
+  hdf.nd_attributes_file: ""
   hdf.num_capture: 0
   hdf.num_extra_dims: 0
   hdf.position_mode: 0

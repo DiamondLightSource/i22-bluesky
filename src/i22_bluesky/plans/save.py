@@ -1,5 +1,7 @@
-from ophyd_async.core import Device
 from typing import List, Optional
+
+from ophyd_async.core import Device
+
 from i22_bluesky.stubs.save import save_device
 
 

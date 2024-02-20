@@ -1,6 +1,6 @@
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
@@ -532,13 +532,6 @@ def bad_pilatus(
 
     rs_uid = yield from inner_linkam_plan()
     return rs_uid
-
-
-import bluesky.plan_stubs as bps
-from dls_bluesky_core.stubs.flyables import fly_and_collect
-from ophyd_async.core.flyer import HardwareTriggeredFlyable
-
-from i22_bluesky.panda.fly_scanning import RepeatedTrigger
 
 
 def do_fly(

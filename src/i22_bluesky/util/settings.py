@@ -23,11 +23,9 @@ def make_stats_sum_xml(path: Path) -> str:
 def load_pilatus_settings(saxs: HDFStatsPilatus, waxs: HDFStatsPilatus, path: Path):
     xml = make_stats_sum_xml(path / "stats_sum_stamping.xml")
     yield from bps.mv(
-        saxs.stats.nd_attributes_file,
-        xml,
-        waxs.stats.nd_attributes_file,
-        xml
+        saxs.stats.nd_attributes_file, xml, waxs.stats.nd_attributes_file, xml
     )
+
 
 def load_tetramm_linkam_settings(linkam: Device, tetramm: TetrammDetector, path: Path):
     xml_path = path / "tetramm_linkam_stamping.xml"
@@ -43,4 +41,3 @@ def load_tetramm_linkam_settings(linkam: Device, tetramm: TetrammDetector, path:
         tetramm.drv.nd_attributes_file,
         str(xml_path),
     )
-

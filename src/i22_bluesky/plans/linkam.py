@@ -428,3 +428,146 @@ def step_and_wait(
 
     rs_uid = yield from inner_linkam_plan()
     return rs_uid
+
+
+def bad_pilatus(
+    exposure: float = 0.1,
+    num_frames: int = 10,
+    repeats: int = 4,
+    period: float = 1.0,
+    saxs: StandardDetector = inject("saxs"),
+    waxs: StandardDetector = inject("waxs"),
+    tetramm1: StandardDetector = inject("i0"),
+    tetramm2: StandardDetector = inject("it"),
+    linkam: Linkam3 = inject("linkam"),
+    panda: PandA = inject("panda-01"),
+) -> MsgGenerator:
+    """Cool in steps, then heat constantly, taking collections of num_frames each time::
+
+                      _             __ heat_temp
+                     / \\           /
+        cool_step_______\\__       /
+                           \\     /
+                  cool_temp \\__ /
+        exposures        xx  xx   xx    num_frames=2 each time
+
+    Fast shutter will be opened for each group of exposures
+
+
+    Args:
+        saxs: saxs detector
+        waxs: waxs detector
+        linkam: Linkam temperature stage
+        panda: PandA for controlling flyable motion
+        start_temp: initial temperature to reach before starting experiment
+        cool_temp: target end temp for cooling stage
+        cool_step: temperature step dT after each to perform scan
+        cool_rate: rate of change of temperature with time, dT/dt
+        heat_temp: target end temp for heating stage
+        heat_step: temperature step dT after each to perform scan
+        heat_rate: rate of change of temperature with time, dT/dt
+        num_frames: number of frames to take at each point in temperature
+        exposure: exposure time of detectors
+        metadata: metadata: Key-value metadata to include in exported data,
+            defaults to None.
+
+    Returns:
+        MsgGenerator: Plan
+
+    Yields:
+        Iterator[MsgGenerator]: Bluesky messages
+    """
+    dets = [saxs, waxs, tetramm1, tetramm2]
+    flyer = HardwareTriggeredFlyable(
+        SameTriggerDetectorGroupLogic(
+            [det.controller for det in dets],
+            [det.writer for det in dets],
+        ),
+        PandARepeatedTriggerLogic(panda.seq[1], shutter_time=0.004),
+        # TODO: Should this include config_with_temperature_stamping?
+        configuration_signals=[],
+        # TODO: Or else where should this be/where does it come from?
+        # settings={saxs: config_with_temperature_stamping},
+        # Or maybe a different object?
+        name="flyer",
+    )
+    deadtime = max(det.controller.get_deadtime(exposure) for det in dets)
+    _md = {
+        "detectors": [det.name for det in dets],
+        # TODO: Can we pass dimensional hint? motors? shape?
+        "hints": {},
+    }
+
+    # yield from load_device(panda)
+    yield from load_device(linkam)
+
+    for det in dets:
+        yield from load_device(det)
+
+    free_first_tetramm = partial(free_tetramm, tetramm1)
+    free_second_tetramm = partial(free_tetramm, tetramm2)
+
+    tetramm1.controller.minimum_frame_time = exposure
+    tetramm2.controller.minimum_frame_time = exposure
+
+    # at the end of the plan, start the tetramms in freerun mode so their diode values
+    # constantly update.
+    @finalize_decorator(free_first_tetramm)
+    @finalize_decorator(free_second_tetramm)
+    @bpp.stage_decorator([flyer])
+    @bpp.run_decorator(md=_md)
+    def inner_linkam_plan():
+        yield from load_pilatus_settings(saxs, waxs, XML_PATH)
+        yield from load_tetramm_linkam_settings(linkam, tetramm1, XML_PATH)
+        # Fly up at the heat rate
+        yield from do_fly(
+            flyer=flyer,
+            exposure=exposure,
+            deadtime=deadtime,
+            num_frames=num_frames,
+            num_repeats=repeats,
+            period=period,
+            fly=True,
+        )
+
+    rs_uid = yield from inner_linkam_plan()
+    return rs_uid
+
+
+import bluesky.plan_stubs as bps
+from dls_bluesky_core.stubs.flyables import fly_and_collect
+from ophyd_async.core.flyer import HardwareTriggeredFlyable
+
+from i22_bluesky.panda.fly_scanning import RepeatedTrigger
+
+
+def do_fly(
+    flyer: HardwareTriggeredFlyable,
+    exposure: float,
+    deadtime: float,
+    num_frames: int,
+    num_repeats: int,
+    period: float,
+    fly: bool = False,
+):
+    one_batch = RepeatedTrigger(num=num_frames, width=exposure, deadtime=deadtime)
+    if fly:
+        # Do a single batch to start
+        yield from bps.mv(flyer, one_batch)
+        yield from fly_and_collect(flyer)
+        # Setup for many batches
+        many_batches = RepeatedTrigger(
+            num=num_frames,
+            width=exposure,
+            deadtime=deadtime,
+            repeats=num_repeats - 1,
+            period=period,
+        )
+        yield from bps.mv(flyer, many_batches)
+        # Collect constantly
+        yield from fly_and_collect(flyer)
+    else:
+        for _ in range(num_repeats):
+            yield from bps.mv(flyer, one_batch)
+            yield from fly_and_collect(flyer)
+            yield from bps.sleep(period)

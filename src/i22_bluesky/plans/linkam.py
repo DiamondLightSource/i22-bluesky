@@ -4,12 +4,12 @@ from typing import Any, Dict, Optional
 
 import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
-from dls_bluesky_core.core import MsgGenerator, inject
+from dodal.common.coordination import inject
+from dodal.common.types import MsgGenerator
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import free_tetramm
 from ophyd_async.core import (
     HardwareTriggeredFlyable,
-    SameTriggerDetectorGroupLogic,
     StandardDetector,
 )
 from ophyd_async.panda import PandA
@@ -92,17 +92,7 @@ def linkam_plan(
         "exposure": exposure,
     }
     flyer = HardwareTriggeredFlyable(
-        SameTriggerDetectorGroupLogic(
-            [det.controller for det in dets],
-            [det.writer for det in dets],
-        ),
-        PandARepeatedTriggerLogic(panda.seq[1], shutter_time=0.004),
-        # TODO: Should this include config_with_temperature_stamping?
-        configuration_signals=[],
-        # TODO: Or else where should this be/where does it come from?
-        # settings={saxs: config_with_temperature_stamping},
-        # Or maybe a different object?
-        name="flyer",
+        PandARepeatedTriggerLogic(panda.seq[1], shutter_time=0.004), []
     )
     deadtime = max(det.controller.get_deadtime(exposure) for det in dets)
     _md = {

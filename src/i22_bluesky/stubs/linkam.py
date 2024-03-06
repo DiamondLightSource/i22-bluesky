@@ -1,5 +1,5 @@
 from time import time
-from typing import List, Optional, Protocol, runtime_checkable
+from typing import List, Protocol, runtime_checkable
 
 import bluesky.plan_stubs as bps
 import numpy as np
@@ -33,19 +33,16 @@ def fly_and_collect(
     """Fly a flyer which controls a series of Collectable devices, then repeatedly
     collect from the controlled devices.
 
-    This plan may need to be called in succession in order to e.g., set up a flyer
-    to send triggers multiple times and collect data. For such a use case checkpoint after each collect.
-
     Args:
-        flyer (Flyable): ophyd-async device which implements Flyable
-        devices (List[Collectable & Flyable]): devices controlled by the Flyer which produce data
-        flush_period (float): How often (in seconds) to check if flyer.complete has finished.
-                              Defaults to 0.5
-        timeout (float): period after which the plan should be automatically aborted for taking too long and assumed to be stuck. Default 7200 seconds (2 hours)
-        checkpoint_every_collect (bool): whether or not to checkpoint after
-                                        collect has been called. Defaults to
-                                         False.
-        stream_name (str): name of the stream to collect from. Defaults to "primary".
+        flyer (Flyable): Device which controls the triggering of collectable devices
+        devices (List[CollectableFlyable]): devices controlled by the Flyer which produce data
+        flush_period (float): How often (in seconds) to readout the devices.
+                              Default 0.5
+        timeout (float): Period (in seconds) after which the plan may be aborted for
+            taking too long and assumed to be stuck.
+            Default 7200 (2 hours)
+        checkpoint_every_collect (bool): Whether to checkpoint after each Collect. Default False
+        stream_name (str): Name of the stream to collect from. Default "primary".
 
 
     Returns:
@@ -61,9 +58,9 @@ def fly_and_collect(
 
     guid = group_uuid("complete")
 
-    yield from bps.complete(flyer, wait=False, group=guid)
+    yield from bps.complete(flyer, group=guid)
     for device in devices:
-        yield from bps.complete(device, wait=False, group=guid)
+        yield from bps.complete(device, group=guid)
 
     done = False
     start_time = time.time()
@@ -85,8 +82,9 @@ def fly_and_collect(
 
 # TODO: Make non-flyer signature to allow non-flying with non-flying device?
 def scan_linkam(
+    flyer: HardwareTriggeredFlyable[RepeatedTrigger],
+    devices: List[CollectableFlyable],
     linkam: Linkam3,
-    flyer: HardwareTriggeredFlyable,
     start: float,
     stop: float,
     step: float,
@@ -95,40 +93,47 @@ def scan_linkam(
     deadtime: float,
     num_frames: int,
     fly=False,
-    detectors: Optional[List[Flyable]] = None,
-):
+) -> MsgGenerator:
+    # Take num_frames from each device once
     one_batch = RepeatedTrigger(num=num_frames, width=exposure, deadtime=deadtime)
+
     start, stop, num = step_to_num(start, stop, step)
+    # Take num_frames from each devices periodically
+    many_batches = RepeatedTrigger(
+        num=num_frames,
+        width=exposure,
+        deadtime=deadtime,
+        repeats=num - 1,
+        period=abs((stop - start) / (rate / 60)) / (num - 1),
+    )
+
+    def prepare_all_with_trigger(trigger: RepeatedTrigger) -> MsgGenerator:
+        yield from bps.prepare(flyer, trigger, wait=True)
+        guid = group_uuid("prepare")
+        for device in devices:
+            yield from bps.prepare(device, flyer.trigger_info, group=guid)
+        yield from bps.wait(guid)
+
     yield from bps.mv(linkam.ramp_rate, rate)
     if fly:
         # Do a single batch to start
         yield from bps.mv(linkam, start)
-        yield from bps.prepare(flyer, one_batch, wait=True)
-        guid = group_uuid("prepare")
-        for d in detectors:
-            yield from bps.prepare(d, flyer.trigger_info, group=guid)
-        yield from bps.wait(guid)
-        yield from fly_and_collect(flyer, detectors=detectors)
+        yield from prepare_all_with_trigger(one_batch)
+        yield from fly_and_collect(flyer, devices)
+
         # Setup for many batches
-        many_batches = RepeatedTrigger(
-            num=num_frames,
-            width=exposure,
-            deadtime=deadtime,
-            repeats=(num - 1),
-            period=abs((stop - start) / (rate / 60)) / (num - 1),
-        )
-        yield from bps.prepare(flyer, many_batches)
+        yield from prepare_all_with_trigger(many_batches)
         # Then start flying, collecting roughly every step
         linkam_group = group_uuid("linkam")
         yield from bps.abs_set(linkam, stop, group=linkam_group, wait=False)
         # Collect constantly
-        yield from fly_and_collect(flyer, detectors=detectors)
+        yield from fly_and_collect(flyer, devices=devices)
         # Make sure linkam has finished
         yield from bps.wait(group=linkam_group)
     else:
         temps = np.linspace(start, stop, num)
         for temp in temps:
             yield from bps.mv(linkam, temp)
-            yield from bps.prepare(flyer, one_batch)
+            yield from bps.prepare(flyer, one_batch, wait=True)
             # Collect at each step
-            yield from fly_and_collect(flyer, detectors=detectors)
+            yield from fly_and_collect(flyer, devices=devices)

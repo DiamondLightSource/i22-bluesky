@@ -2,6 +2,7 @@ from typing import List
 
 from bluesky import preprocessors as bpp
 from dodal.common import inject
+from dodal.common.visit import attach_metadata_decorator
 from dodal.devices.focusing_mirror import FocusingMirror
 from dodal.devices.i22.fswitch import FSwitch
 from dodal.devices.slits import Slits
@@ -35,6 +36,7 @@ def alt_decorated_fly_2(
         inject("vfm"),
     ],
 ):
+    @attach_metadata_decorator
     @bpp.baseline_decorator(devices=baseline)
     def inner_fly():
         yield from time_resolved_fly_and_collect_with_static_seq_table(
@@ -74,6 +76,7 @@ def alt_decorated_fly_1(
         ]
     ),
 ):
+    @attach_metadata_decorator
     @bpp.baseline_decorator(devices=baseline)
     def inner_fly():
         yield from time_resolved_fly_and_collect_with_static_seq_table(
@@ -109,6 +112,7 @@ def decorated_fly(
     hfm: FocusingMirror = inject("hfm"),
     vfm: FocusingMirror = inject("vfm"),
 ):
+    @attach_metadata_decorator
     @bpp.baseline_decorator(
         devices=[
             fswitch,

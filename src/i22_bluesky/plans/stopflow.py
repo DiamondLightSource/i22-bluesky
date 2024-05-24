@@ -14,13 +14,19 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
+from typing import List
+
 import bluesky.plan_stubs as bps
 from dodal.common import MsgGenerator
 from ophyd_async.core import HardwareTriggeredFlyable
-from ophyd_async.core.detector import StandardDetector
+from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
+from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
 
+
+from ophyd_async.panda._table import SeqTable, SeqTableRow, seq_table_from_rows
+from ophyd_async.panda._trigger import SeqTableInfo
 
 def stopflow(
     panda: HDFPanda,
@@ -67,3 +73,65 @@ def stopflow(
 
     yield from bps.close_run()
     yield from bps.unstage_all(flyer, *detectors)
+
+
+
+def prepare_(
+    flyer: HardwareTriggeredFlyable[SeqTableInfo],
+    detectors: List[StandardDetector],
+    pre_stop_frames: int,
+    post_stop_frames:int,
+    exposure: float,
+    deadtime: float,
+    shutter_time: float,
+    repeats: int = 1,
+    period: float = 0.0,
+):
+
+    trigger_info = TriggerInfo(
+        num= (pre_stop_frames + post_stop_frames) * repeats,
+        trigger=DetectorTrigger.constant_gate,
+        deadtime=deadtime,
+        livetime=exposure,
+    )
+
+    trigger_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
+    pre_delay = max(period - 2 * shutter_time - trigger_time, 0)
+
+    table: SeqTable = seq_table_from_rows(
+        # Wait for pre-delay then open shutter
+        SeqTableRow(
+            time1=in_micros(pre_delay),
+            time2=in_micros(shutter_time),
+            outa2=True,
+        ),
+        # Keeping shutter open, do n triggers
+        SeqTableRow(
+            repeats=pre_stop_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
+        ),
+        # wait for BITA=1
+        SeqTableRow(),
+        # Do m triggers
+        SeqTableRow(
+            repeats=post_stop_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
+        ),
+        # Add the shutter close
+        SeqTableRow(time2=in_micros(shutter_time)),
+    )
+
+    table_info = SeqTableInfo(table, repeats)
+
+    for det in detectors:
+        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
+    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
+    yield from bps.wait(group="prep")

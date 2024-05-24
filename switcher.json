@@ -14,5 +14,9 @@
   {
     "version": "rebased_i22",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/rebased_i22/"
+  },
+  {
+    "version": "unpin-dependencies",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/unpin-dependencies/"
   }
 ]

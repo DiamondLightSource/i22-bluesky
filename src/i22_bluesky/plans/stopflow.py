@@ -25,7 +25,7 @@ from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
 
 
-from ophyd_async.panda._table import SeqTable, SeqTableRow, seq_table_from_rows
+from ophyd_async.panda._table import SeqTable, SeqTableRow, seq_table_from_rows, SeqTrigger
 from ophyd_async.panda._trigger import SeqTableInfo
 
 def stopflow(
@@ -60,7 +60,7 @@ def stopflow(
     yield from bps.stage_all(*detectors, flyer)
     yield from bps.open_run()
 
-    time_resolved_fly_and_collect_with_static_seq_table(
+    yield from time_resolved_fly_and_collect_with_static_seq_table(
         stream_name=stream_name,
         detectors = detectors,
         flyer=flyer,
@@ -69,6 +69,7 @@ def stopflow(
         shutter_time=shutter_time,
         repeats=repeats,
         period=period,
+        prepare_flyer_and_detectors = prepare_seq_table_flyer_and_det,
     )
 
     yield from bps.close_run()
@@ -76,7 +77,7 @@ def stopflow(
 
 
 
-def prepare_(
+def prepare_seq_table_flyer_and_det(
     flyer: HardwareTriggeredFlyable[SeqTableInfo],
     detectors: List[StandardDetector],
     pre_stop_frames: int,
@@ -114,10 +115,9 @@ def prepare_(
             time2=in_micros(deadtime),
             outa2=True,
         ),
-        # wait for BITA=1
-        SeqTableRow(),
-        # Do m triggers
+        # Do m triggers after BITA=1
         SeqTableRow(
+            trigger=SeqTrigger.BITA_1,
             repeats=post_stop_frames,
             time1=in_micros(exposure),
             outa1=True,

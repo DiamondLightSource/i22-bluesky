@@ -85,12 +85,11 @@ def prepare_seq_table_flyer_and_det(
     exposure: float,
     deadtime: float,
     shutter_time: float,
-    repeats: int = 1,
     period: float = 0.0,
 ):
 
     trigger_info = TriggerInfo(
-        num= (pre_stop_frames + post_stop_frames) * repeats,
+        num= (pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,
         deadtime=deadtime,
         livetime=exposure,
@@ -129,7 +128,7 @@ def prepare_seq_table_flyer_and_det(
         SeqTableRow(time2=in_micros(shutter_time)),
     )
 
-    table_info = SeqTableInfo(table, repeats)
+    table_info = SeqTableInfo(table, repeats=1)
 
     for det in detectors:
         yield from bps.prepare(det, trigger_info, wait=False, group="prep")

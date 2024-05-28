@@ -16,6 +16,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/fix-stopflow/"
   },
   {
+    "version": "format-stopflow",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/format-stopflow/"
+  },
+  {
     "version": "i22-local-changes",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
   },

@@ -27,7 +27,7 @@ from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
+from ophyd_async.plan_stubs import fly_and_collect
 from ophyd_async.panda._table import (
     SeqTable,
     SeqTableRow,
@@ -38,6 +38,10 @@ from ophyd_async.panda._trigger import SeqTableInfo
 
 
 def stopflow(
+    pre_stop_frames: int,
+    post_stop_frames: int,
+    exposure: int,
+    shutter_time: float,
     panda: HDFPanda,
     detectors: List[StandardDetector],
     baseline: List[Readable] = inject(
@@ -56,6 +60,10 @@ def stopflow(
 ) -> MsgGenerator:
     """
     Args:
+        pre_stop_frames: Number of frames to be collected before the flow is stopped.
+        post_stop_frames: Number of frames to be collected after the flow is stopped.
+        exposure: exposure time of the detectors.
+        shutter_time: time of the detectors.
         panda: PandA for controlling flyable motion.
         detectors: A list of detectors that will be collected.
         baseline: A list of devices to be read at the start and end of the plan
@@ -71,30 +79,24 @@ def stopflow(
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 
-    # Trigger information
-    number_of_frames: int
-    exposure: int
-    shutter_time: float
-    repeats: int = 1
-    period: float = 0
-
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
     def inner_stopflow_plan():
-        yield from time_resolved_fly_and_collect_with_static_seq_table(
+        yield from prepare_seq_table_flyer_and_det(
+            pre_stop_frames=pre_stop_frames,
+            post_stop_frames=post_stop_frames,
+            exposure=exposure,
+            shutter_time=shutter_time,
+        )
+        yield from fly_and_collect(
             stream_name=stream_name,
             detectors=detectors,
             flyer=flyer,
-            number_of_frames=number_of_frames,
-            exposure=exposure,
-            shutter_time=shutter_time,
-            repeats=repeats,
-            period=period,
-            prepare_flyer_and_detectors=prepare_seq_table_flyer_and_det,
         )
     yield from inner_stopflow_plan()
+
 
 def prepare_seq_table_flyer_and_det(
     flyer: HardwareTriggeredFlyable[SeqTableInfo],
@@ -106,7 +108,6 @@ def prepare_seq_table_flyer_and_det(
     shutter_time: float,
     period: float = 0.0,
 ):
-
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,

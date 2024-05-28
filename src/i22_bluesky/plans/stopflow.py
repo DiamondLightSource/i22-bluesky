@@ -56,7 +56,10 @@ def stopflow(
 ) -> MsgGenerator:
     """
     Args:
-        panda: PandA for controlling flyable motion
+        panda: PandA for controlling flyable motion.
+        detectors: A list of detectors that will be collected.
+        baseline: A list of devices to be read at the start and end of the plan
+            in a stream names baseline.
 
     Returns:
         MsgGenerator: Plan

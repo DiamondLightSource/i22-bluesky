@@ -7,7 +7,6 @@ from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import TetrammDetector
-
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 

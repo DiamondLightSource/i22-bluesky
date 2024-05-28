@@ -1,12 +1,12 @@
 from typing import List
+
 import bluesky.plan_stubs as bps
 import numpy as np
 from dls_bluesky_core.core import group_uuid, step_to_num
 from dodal.devices.linkam3 import Linkam3
-
+from ophyd_async.core import StandardDetector
 from ophyd_async.core.flyer import HardwareTriggeredFlyable
 from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
-from ophyd_async.core import StandardDetector
 
 
 def scan_linkam(

@@ -12,10 +12,6 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/dependabot_github_actions_codecov_codecov-action-4/"
   },
   {
-    "version": "fix-stopflow",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/fix-stopflow/"
-  },
-  {
     "version": "i22-local-changes",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
   },

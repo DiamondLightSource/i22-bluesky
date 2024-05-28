@@ -27,7 +27,7 @@ from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
+from ophyd_async.plan_stubs import fly_and_collect
 from ophyd_async.panda._table import (
     SeqTable,
     SeqTableRow,
@@ -75,28 +75,24 @@ def stopflow(
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 
-    # Trigger information
-    number_of_frames = pre_stop_frames + post_stop_frames
-    repeats: int = 1
-    period: float = 0
-
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
     def inner_stopflow_plan():
-        yield from time_resolved_fly_and_collect_with_static_seq_table(
+        yield from prepare_seq_table_flyer_and_det(
+            pre_stop_frames=pre_stop_frames,
+            post_stop_frames=post_stop_frames,
+            exposure=exposure,
+            shutter_time=shutter_time,
+        )
+        yield from fly_and_collect(
             stream_name=stream_name,
             detectors=detectors,
             flyer=flyer,
-            number_of_frames=number_of_frames,
-            exposure=exposure,
-            shutter_time=shutter_time,
-            repeats=repeats,
-            period=period,
-            prepare_flyer_and_detectors=prepare_seq_table_flyer_and_det,
         )
     yield from inner_stopflow_plan()
+
 
 def prepare_seq_table_flyer_and_det(
     flyer: HardwareTriggeredFlyable[SeqTableInfo],
@@ -108,7 +104,6 @@ def prepare_seq_table_flyer_and_det(
     shutter_time: float,
     period: float = 0.0,
 ):
-
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,

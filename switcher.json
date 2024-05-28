@@ -8,10 +8,6 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },
   {
-    "version": "dependabot_github_actions_codecov_codecov-action-4",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/dependabot_github_actions_codecov_codecov-action-4/"
-  },
-  {
     "version": "i22-local-changes",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
   },

@@ -60,6 +60,10 @@ def stopflow(
 ) -> MsgGenerator:
     """
     Args:
+        pre_stop_frames: Number of frames to be collected before the flow is stopped.
+        post_stop_frames: Number of frames to be collected after the flow is stopped.
+        exposure: exposure time of the detectors.
+        shutter_time: time of the detectors.
         panda: PandA for controlling flyable motion.
         detectors: A list of detectors that will be collected.
         baseline: A list of devices to be read at the start and end of the plan

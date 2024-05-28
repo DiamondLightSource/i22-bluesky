@@ -38,6 +38,10 @@ from ophyd_async.panda._trigger import SeqTableInfo
 
 
 def stopflow(
+    pre_stop_frames: int,
+    post_stop_frames: int,
+    exposure: int,
+    shutter_time: float,
     panda: HDFPanda,
     detectors: List[StandardDetector],
     baseline: List[Readable] = inject(
@@ -72,9 +76,7 @@ def stopflow(
     devices = [flyer] + detectors + baseline
 
     # Trigger information
-    number_of_frames: int
-    exposure: int
-    shutter_time: float
+    number_of_frames = pre_stop_frames + post_stop_frames
     repeats: int = 1
     period: float = 0
 

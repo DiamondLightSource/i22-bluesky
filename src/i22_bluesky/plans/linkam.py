@@ -6,7 +6,7 @@ import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
-from dodal.devices.tetramm import free_tetramm
+from dodal.devices.tetramm import TetrammDetector
 
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
@@ -102,8 +102,8 @@ def linkam_plan(
     for det in dets:
         yield from load_device(det)
 
-    free_first_tetramm = partial(free_tetramm, tetramm1)
-    free_second_tetramm = partial(free_tetramm, tetramm2)
+    free_first_tetramm = partial(TetrammDetector, tetramm1)
+    free_second_tetramm = partial(TetrammDetector, tetramm2)
 
     devices = [flyer] + dets
 

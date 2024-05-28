@@ -39,7 +39,7 @@ from ophyd_async.panda._trigger import SeqTableInfo
 
 def stopflow(
     panda: HDFPanda,
-    det1: StandardDetector,
+    detectors: List[StandardDetector],
     baseline: List[Readable] = inject(
         [
             "fswitch",
@@ -65,7 +65,6 @@ def stopflow(
         Iterator[MsgGenerator]: Bluesky messages
     """
     stream_name = "main"
-    detectors = [det1]
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 

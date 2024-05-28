@@ -1,9 +1,12 @@
 # Stop flow experiment
 
-# The experiment involves a liquid sample intersecting and flowing laterally to the beam.
+# The experiment involves a liquid sample intersecting and flowing laterally to the
+# beam.
 # The beam passes through the flowing liquid and scatters onto a detector.
-# The flow is controlled by a proprietary rig that allows the user to request a "stop flow".
-# At the moment the flow stops, the rig sends out a pulse to the panda, which can then trigger the detector.
+# The flow is controlled by a proprietary rig that allows the user to request a
+# "stop flow".
+# At the moment the flow stops, the rig sends out a pulse to the panda, which can
+# then trigger the detector.
 
 # A single pulse goes into the panda and many pulses come out via a sequencer table.
 # The table can specify X sets of Y pulses at Z hertz.
@@ -17,24 +20,22 @@
 from typing import List
 
 import bluesky.plan_stubs as bps
-from bluesky.protocols import Readable
 import bluesky.preprocessors as bpp
-
+from bluesky.protocols import Readable
 from dodal.common import MsgGenerator, inject
 from dodal.common.visit import attach_metadata_decorator
-
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.plan_stubs import fly_and_collect
 from ophyd_async.panda._table import (
     SeqTable,
     SeqTableRow,
-    seq_table_from_rows,
     SeqTrigger,
+    seq_table_from_rows,
 )
 from ophyd_async.panda._trigger import SeqTableInfo
+from ophyd_async.plan_stubs import fly_and_collect
 
 
 def stopflow(
@@ -95,6 +96,7 @@ def stopflow(
             detectors=detectors,
             flyer=flyer,
         )
+
     yield from inner_stopflow_plan()
 
 

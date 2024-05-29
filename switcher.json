@@ -32,6 +32,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/rebased_i22/"
   },
   {
+    "version": "remove-3.9",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-3.9/"
+  },
+  {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
   },

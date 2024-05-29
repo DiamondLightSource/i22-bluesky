@@ -80,6 +80,9 @@ def stopflow(
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 
+    # Add panda to collect from it
+    detectors = detectors + [panda]
+
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)

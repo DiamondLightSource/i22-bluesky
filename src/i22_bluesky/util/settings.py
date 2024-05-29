@@ -2,9 +2,12 @@ from functools import lru_cache
 from pathlib import Path
 
 import bluesky.plan_stubs as bps
-from dodal.devices.areadetector.pilatus import HDFStatsPilatus
 from ophyd_async.core import Device
-from ophyd_async.epics.areadetector import NDAttributeDataType, NDAttributesXML
+from ophyd_async.epics.areadetector import (
+    NDAttributeDataType,
+    NDAttributesXML,
+    PilatusDetector,
+)
 
 
 @lru_cache(maxsize=1)
@@ -33,7 +36,7 @@ def make_saxs_linkam_stamping_xml(linkam: Device, path: Path):
     return str(path)
 
 
-def load_saxs_linkam_settings(linkam: Device, saxs: HDFStatsPilatus, path: Path):
+def load_saxs_linkam_settings(linkam: Device, saxs: PilatusDetector, path: Path):
     yield from bps.mv(
         saxs.stats.nd_attributes_file,
         make_stats_sum_xml(path / "stats_sum_stamping.xml"),
@@ -42,7 +45,7 @@ def load_saxs_linkam_settings(linkam: Device, saxs: HDFStatsPilatus, path: Path)
     )
 
 
-def load_waxs_settings(waxs: HDFStatsPilatus, path: Path):
+def load_waxs_settings(waxs: PilatusDetector, path: Path):
     yield from bps.mv(
         waxs.stats.nd_attributes_file,
         make_stats_sum_xml(path / "stats_sum_stamping.xml"),

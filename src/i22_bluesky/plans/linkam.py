@@ -6,15 +6,10 @@ import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
-from dodal.devices.tetramm import free_tetramm
-from ophyd_async.core import (
-    HardwareTriggeredFlyable,
-    SameTriggerDetectorGroupLogic,
-    StandardDetector,
-)
-from ophyd_async.panda import PandA
+from dodal.devices.tetramm import TetrammDetector
+from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
+from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 
-from i22_bluesky.panda.fly_scanning import PandARepeatedTriggerLogic
 from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.stubs.load import load_device
 from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
@@ -41,7 +36,7 @@ def linkam_plan(
     tetramm1: StandardDetector = inject("i0"),
     tetramm2: StandardDetector = inject("it"),
     linkam: Linkam3 = inject("linkam"),
-    panda: PandA = inject("panda-01"),
+    panda: HDFPanda = inject("panda-01"),
 ) -> MsgGenerator:
     """Cool in steps, then heat constantly, taking collections of num_frames each time::
 
@@ -91,20 +86,7 @@ def linkam_plan(
         "num_frames": num_frames,
         "exposure": exposure,
     }
-    flyer = HardwareTriggeredFlyable(
-        SameTriggerDetectorGroupLogic(
-            [det.controller for det in dets],
-            [det.writer for det in dets],
-        ),
-        PandARepeatedTriggerLogic(panda.seq[1], shutter_time=0.004),
-        # TODO: Should this include config_with_temperature_stamping?
-        configuration_signals=[],
-        # TODO: Or else where should this be/where does it come from?
-        # settings={saxs: config_with_temperature_stamping},
-        # Or maybe a different object?
-        name="flyer",
-    )
-    deadtime = max(det.controller.get_deadtime(exposure) for det in dets)
+    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     _md = {
         "detectors": [det.name for det in dets],
         "plan_args": plan_args,
@@ -119,12 +101,14 @@ def linkam_plan(
     for det in dets:
         yield from load_device(det)
 
-    free_first_tetramm = partial(free_tetramm, tetramm1)
-    free_second_tetramm = partial(free_tetramm, tetramm2)
+    free_first_tetramm = partial(TetrammDetector, tetramm1)
+    free_second_tetramm = partial(TetrammDetector, tetramm2)
+
+    devices = [flyer] + dets
 
     @finalize_decorator(free_first_tetramm)
     @finalize_decorator(free_second_tetramm)
-    @bpp.stage_decorator([flyer])
+    @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():
         yield from load_saxs_linkam_settings(linkam, saxs, XML_PATH)
@@ -133,13 +117,13 @@ def linkam_plan(
         yield from scan_linkam(
             linkam=linkam,
             flyer=flyer,
+            detectors=dets,
             start=start_temp,
             stop=cool_temp,
             step=cool_step,
             rate=cool_rate,
-            exposure=exposure,
-            deadtime=deadtime,
             num_frames=num_frames,
+            exposure=exposure,
             fly=False,
         )
         # Fly up at the heat rate
@@ -150,9 +134,8 @@ def linkam_plan(
             stop=heat_temp,
             step=heat_step,
             rate=heat_rate,
-            exposure=exposure,
-            deadtime=deadtime,
             num_frames=num_frames,
+            exposure=exposure,
             fly=True,
         )
 

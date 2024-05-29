@@ -1,3 +1,5 @@
-from .linkam import scan_linkam
+from .save import save_device
+from .load import load_device
 
-__all__ = ["scan_linkam"]
+__all__ = ["save_device", "load_device"]
+

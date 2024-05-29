@@ -20,14 +20,15 @@ import bluesky.plan_stubs as bps
 from bluesky.protocols import Readable
 import bluesky.preprocessors as bpp
 
-from dodal.common import MsgGenerator, inject
+from dls_bluesky_core.core import MsgGenerator
+from dodal.common import inject
 from dodal.common.visit import attach_metadata_decorator
 
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.plan_stubs import time_resolved_fly_and_collect_with_static_seq_table
+from ophyd_async.plan_stubs import fly_and_collect
 from ophyd_async.panda._table import (
     SeqTable,
     SeqTableRow,
@@ -40,13 +41,19 @@ from ophyd_async.panda._trigger import SeqTableInfo
 def stopflow(
     panda: HDFPanda,
     detectors: List[StandardDetector],
+    pre_stop_frames: int,
+    post_stop_frames: int,
+    exposure: float,
+    shutter_time: float,
+    repeats: int = 1,
+    period: float = 0,
     baseline: List[Readable] = inject(
         [
             "fswitch",
             "slits_1",
             "slits_2",
             "slits_3",
-            "slits_4",
+#            "slits_4",
             "slits_5",
             "slits_6",
             "hfm",
@@ -71,28 +78,14 @@ def stopflow(
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 
-    # Trigger information
-    number_of_frames: int
-    exposure: int
-    shutter_time: float
-    repeats: int = 1
-    period: float = 0
-
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
     def inner_stopflow_plan():
-        yield from time_resolved_fly_and_collect_with_static_seq_table(
-            stream_name=stream_name,
-            detectors=detectors,
-            flyer=flyer,
-            number_of_frames=number_of_frames,
-            exposure=exposure,
-            shutter_time=shutter_time,
-            repeats=repeats,
-            period=period,
-            prepare_flyer_and_detectors=prepare_seq_table_flyer_and_det,
+        yield from prepare_seq_table_flyer_and_det(flyer, detectors, pre_stop_frames, post_stop_frames, exposure, shutter_time, period)
+        yield from fly_and_collect(
+            stream_name,flyer, detectors
         )
     yield from inner_stopflow_plan()
 

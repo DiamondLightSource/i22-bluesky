@@ -3,6 +3,7 @@ from typing import Generator, List, Optional
 from ophyd_async.core import Device, get_signal_values, save_to_yaml, walk_rw_signals
 
 from i22_bluesky.util.get_root import get_project_root
+from dls_bluesky_core.core import MsgGenerator
 
 ROOT_SAVE_DIR = get_project_root() / "pvs"
 
@@ -11,7 +12,7 @@ def save_device(
     device: Device,
     filename_prefix: Optional[str] = None,
     ignore_signals: Optional[List[str]] = None,
-) -> Generator[None, None, None]:
+) -> MsgGenerator:
     """Saves PV values to a yaml file, optionally ignoring some signals"""
     signals = walk_rw_signals(device)
     values = yield from get_signal_values(signals, ignore=ignore_signals)

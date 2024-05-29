@@ -4,6 +4,7 @@ from bluesky import Msg
 from ophyd_async.core import Device, load_from_yaml, set_signal_values, walk_rw_signals
 
 from i22_bluesky.util.get_root import get_project_root
+from dls_bluesky_core.core import MsgGenerator
 
 ROOT_SAVE_DIR = get_project_root() / "pvs"
 
@@ -11,7 +12,7 @@ ROOT_SAVE_DIR = get_project_root() / "pvs"
 def load_device(
     device: Device,
     filename_prefix: Optional[str] = None,
-) -> Generator[Msg, None, None]:
+) -> MsgGenerator:
     """Loads PV values from a yaml file to a device in-place."""
     device_directory = ROOT_SAVE_DIR / device.__class__.__name__
     filename = device_directory / (

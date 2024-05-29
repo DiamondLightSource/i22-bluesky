@@ -38,5 +38,9 @@
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
+  },
+  {
+    "version": "update-linkam",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/update-linkam/"
   }
 ]

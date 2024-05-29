@@ -24,10 +24,6 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/format-stopflow/"
   },
   {
-    "version": "i22-local-changes",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/i22-local-changes/"
-  },
-  {
     "version": "rebased_i22",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/rebased_i22/"
   },
@@ -38,9 +34,5 @@
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
-  },
-  {
-    "version": "update-linkam",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/update-linkam/"
   }
 ]

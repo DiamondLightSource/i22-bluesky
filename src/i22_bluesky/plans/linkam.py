@@ -73,9 +73,10 @@ def linkam_plan(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
-    dets = [saxs, waxs, tetramm1, tetramm2]
+    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
+    detectors = [saxs, waxs, tetramm1, tetramm2]
+
     plan_args = {
-        "dets": [device.name for device in dets],
         "start_temp": start_temp,
         "cool_temp": cool_temp,
         "cool_step": cool_step,
@@ -85,10 +86,16 @@ def linkam_plan(
         "heat_rate": heat_rate,
         "num_frames": num_frames,
         "exposure": exposure,
+        "saxs": repr(saxs),
+        "waxs": repr(waxs),
+        "tetramm1": repr(tetramm1),
+        "tetramm2": repr(tetramm2),
+        "linkam": repr(linkam),
+        "panda": repr(panda),
     }
-    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     _md = {
-        "detectors": [det.name for det in dets],
+        "detectors": [device.name for device in detectors],
+        "motors": [linkam.name],
         "plan_args": plan_args,
         # TODO: Can we pass dimensional hint? motors? shape?
         "hints": {},
@@ -98,13 +105,13 @@ def linkam_plan(
     yield from load_device(panda)
     yield from load_device(linkam)
 
-    for det in dets:
-        yield from load_device(det)
+    for device in detectors:
+        yield from load_device(device)
 
     free_first_tetramm = partial(TetrammDetector, tetramm1)
     free_second_tetramm = partial(TetrammDetector, tetramm2)
 
-    devices = [flyer] + dets
+    devices = [flyer] + detectors
 
     @finalize_decorator(free_first_tetramm)
     @finalize_decorator(free_second_tetramm)
@@ -117,7 +124,7 @@ def linkam_plan(
         yield from scan_linkam(
             linkam=linkam,
             flyer=flyer,
-            detectors=dets,
+            detectors=detectors,
             start=start_temp,
             stop=cool_temp,
             step=cool_step,

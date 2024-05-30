@@ -43,7 +43,7 @@ def stopflow(
     post_stop_frames: int,
     exposure: int,
     shutter_time: float,
-    panda: HDFPanda,
+    panda: HDFPanda = inject("panda1"),
     detectors: List[StandardDetector] = inject(
         [
             "saxs",

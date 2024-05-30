@@ -86,10 +86,16 @@ def linkam_plan(
         "heat_rate": heat_rate,
         "num_frames": num_frames,
         "exposure": exposure,
-        "detectors": [repr(device) for device in detectors],
+        "saxs": repr(saxs),
+        "waxs": repr(waxs),
+        "tetramm1": repr(tetramm1),
+        "tetramm2": repr(tetramm2),
+        "linkam": repr(linkam),
+        "panda": repr(panda),
     }
     _md = {
         "detectors": [device.name for device in detectors],
+        "motors": [linkam.name],
         "plan_args": plan_args,
         # TODO: Can we pass dimensional hint? motors? shape?
         "hints": {},

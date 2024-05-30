@@ -44,7 +44,13 @@ def stopflow(
     exposure: int,
     shutter_time: float,
     panda: HDFPanda,
-    detectors: List[StandardDetector],
+    detectors: List[StandardDetector] = inject(
+        [
+            "saxs",
+            "waxs",
+            "oav",
+        ]
+    ),
     baseline: List[Readable] = inject(
         [
             "fswitch",

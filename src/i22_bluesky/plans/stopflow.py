@@ -85,7 +85,7 @@ def stopflow(
     """
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    devices = [flyer] + detectors + [panda] + baseline 
+    devices = [flyer] + detectors + [panda] + baseline
 
     # Collect metadata
     plan_args = {

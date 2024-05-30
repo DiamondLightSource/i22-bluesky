@@ -8,6 +8,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },
   {
+    "version": "add-stopflow-import",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/add-stopflow-import/"
+  },
+  {
     "version": "calc-deadtime-in-stub",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/calc-deadtime-in-stub/"
   },

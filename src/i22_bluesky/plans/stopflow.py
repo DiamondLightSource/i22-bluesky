@@ -83,20 +83,19 @@ def stopflow(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
-    # Add panda to collect from it
-    detectors = detectors + [panda]
-
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    devices = [flyer] + detectors + baseline
+    devices = [flyer] + detectors + [panda] + baseline 
 
     # Collect metadata
     plan_args = {
-        "detectors": [repr(device) for device in detectors],
         "pre_stop_frames": pre_stop_frames,
         "post_stop_frames": post_stop_frames,
         "exposure": exposure,
         "shutter_time": shutter_time,
+        "panda": panda,
+        "detectors": [repr(device) for device in detectors],
+        "baseline": [repr(device) for device in baseline],
     }
     _md = {
         "detectors": [device.name for device in detectors],
@@ -104,6 +103,9 @@ def stopflow(
         "hints": {},
     }
     _md.update(metadata or {})
+
+    # Add panda to collect from it
+    detectors = detectors + [panda]
 
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)

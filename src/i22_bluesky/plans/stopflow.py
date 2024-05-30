@@ -115,6 +115,8 @@ def stopflow(
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
         yield from prepare_seq_table_flyer_and_det(
+            flyer=flyer,
+            detectors=detectors,
             pre_stop_frames=pre_stop_frames,
             post_stop_frames=post_stop_frames,
             exposure=exposure,
@@ -135,17 +137,16 @@ def prepare_seq_table_flyer_and_det(
     pre_stop_frames: int,
     post_stop_frames: int,
     exposure: float,
-    deadtime: float,
     shutter_time: float,
     period: float = 0.0,
 ):
+    deadtime = max(det.controller.get_deadtime(exposure) for det in detectors)
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,
         deadtime=deadtime,
         livetime=exposure,
     )
-
     trigger_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
     pre_delay = max(period - 2 * shutter_time - trigger_time, 0)
 

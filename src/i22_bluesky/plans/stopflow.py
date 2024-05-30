@@ -60,7 +60,7 @@ def stopflow(
             "slits_1",
             "slits_2",
             "slits_3",
-            "slits_4",
+            # "slits_4", Until we make this device
             "slits_5",
             "slits_6",
             "hfm",

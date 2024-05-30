@@ -22,7 +22,8 @@ from typing import Any, Dict, List, Optional
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from dodal.common import MsgGenerator, inject
+from dls_bluesky_core.core import MsgGenerator
+from dodal.common import inject
 from dodal.common.visit import attach_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo

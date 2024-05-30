@@ -17,7 +17,7 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from typing import List
+from typing import Any, Dict, List, Optional
 
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
@@ -41,7 +41,7 @@ from ophyd_async.plan_stubs import fly_and_collect
 def stopflow(
     pre_stop_frames: int,
     post_stop_frames: int,
-    exposure: int,
+    exposure: float,
     shutter_time: float,
     panda: HDFPanda = inject("panda1"),
     detectors: List[StandardDetector] = inject(
@@ -64,6 +64,7 @@ def stopflow(
             "vfm",
         ]
     ),
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """
     Args:
@@ -82,17 +83,32 @@ def stopflow(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
+    # Add panda to collect from it
+    detectors = detectors + [panda]
+
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + baseline
 
-    # Add panda to collect from it
-    detectors = detectors + [panda]
+    # Collect metadata
+    plan_args = {
+        "detectors": [repr(device) for device in detectors],
+        "pre_stop_frames": pre_stop_frames,
+        "post_stop_frames": post_stop_frames,
+        "exposure": exposure,
+        "shutter_time": shutter_time,
+    }
+    _md = {
+        "detectors": [device.name for device in detectors],
+        "plan_args": plan_args,
+        "hints": {},
+    }
+    _md.update(metadata or {})
 
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)
-    @bpp.run_decorator()
+    @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
         yield from prepare_seq_table_flyer_and_det(
             pre_stop_frames=pre_stop_frames,

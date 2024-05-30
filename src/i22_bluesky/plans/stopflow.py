@@ -49,6 +49,8 @@ def stopflow(
             "saxs",
             "waxs",
             "oav",
+            "i0",
+            "it",
         ]
     ),
     baseline: List[Readable] = inject(

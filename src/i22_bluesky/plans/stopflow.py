@@ -96,7 +96,7 @@ def stopflow(
         "post_stop_frames": post_stop_frames,
         "exposure": exposure,
         "shutter_time": shutter_time,
-        "panda": panda,
+        "panda": repr(panda),
         "detectors": [repr(device) for device in detectors],
         "baseline": [repr(device) for device in baseline],
     }

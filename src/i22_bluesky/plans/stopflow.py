@@ -40,10 +40,10 @@ from ophyd_async.plan_stubs import fly_and_collect
 
 
 def stopflow(
-    pre_stop_frames: int,
-    post_stop_frames: int,
     exposure: float,
-    shutter_time: float,
+    post_stop_frames: int,
+    pre_stop_frames: int = 0,
+    shutter_time: float = 4e-3,
     panda: HDFPanda = inject("panda1"),
     detectors: List[StandardDetector] = inject(
         [
@@ -70,11 +70,17 @@ def stopflow(
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """
+    Perform a stop flow measurement, see detailed description in
+    https://github.com/DiamondLightSource/i22-bluesky/issues/13
+
     Args:
-        pre_stop_frames: Number of frames to be collected before the flow is stopped.
-        post_stop_frames: Number of frames to be collected after the flow is stopped.
-        exposure: exposure time of the detectors.
-        shutter_time: time of the detectors.
+        exposure: exposure time of the detectors (excluding deadtime).
+        post_stop_frames: Number of frames to be collected after the flow
+            is stopped.
+        pre_stop_frames: Number of frames (if any) to be collected before
+            the flow is stopped.
+        shutter_time: Time period (seconds) to wait for the shutter to
+            open fully before beginning acquisition.
         panda: PandA for controlling flyable motion.
         detectors: A list of detectors that will be collected.
         baseline: A list of devices to be read at the start and end of the plan
@@ -100,7 +106,7 @@ def stopflow(
         "detectors": [repr(device) for device in detectors],
         "baseline": [repr(device) for device in baseline],
     }
-    # Add panda to devices so we can collect from it.
+    # Add panda to detectors so it captures and writes data.
     # It needs to be in metadata but not metadata planargs.
     detectors = detectors + [panda]
     _md = {
@@ -140,7 +146,31 @@ def prepare_seq_table_flyer_and_det(
     exposure: float,
     shutter_time: float,
     period: float = 0.0,
-):
+) -> MsgGenerator:
+    """
+    Setup detectors/flyer for a stop flow experiment. Create a seq table and
+    upload it to the panda. Arm all detectors.
+
+    Args:
+        flyer: Flyer object that controls the panda
+        detectors: Detectors that are triggered by the panda
+        post_stop_frames: Number of frames to be collected after the flow
+            is stopped.
+        pre_stop_frames: Number of frames (if any) to be collected before
+            the flow is stopped.
+        exposure: Detector exposure time
+        shutter_time: Time period (seconds) to wait for the shutter to
+            open fully before beginning acquisition
+        period: Time period (seconds) to wait after arming the detector
+            before taking the first batch of frames
+
+    Returns:
+        MsgGenerator: Plan
+
+    Yields:
+        Iterator[MsgGenerator]: Bluesky messages
+    """
+
     deadtime = max(det.controller.get_deadtime(exposure) for det in detectors)
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
@@ -148,10 +178,54 @@ def prepare_seq_table_flyer_and_det(
         deadtime=deadtime,
         livetime=exposure,
     )
-    trigger_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
-    pre_delay = max(period - 2 * shutter_time - trigger_time, 0)
 
-    table: SeqTable = seq_table_from_rows(
+    # Generate a seq table
+    table = stopflow_seq_table(
+        pre_stop_frames,
+        post_stop_frames,
+        exposure,
+        shutter_time,
+        deadtime,
+        period,
+    )
+    table_info = SeqTableInfo(table, repeats=1)
+
+    # Upload the seq table and arm all detectors.
+    for det in detectors:
+        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
+    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
+    yield from bps.wait(group="prep")
+
+
+def stopflow_seq_table(
+    pre_stop_frames: int,
+    post_stop_frames: int,
+    exposure: float,
+    shutter_time: float,
+    deadtime: float,
+    period: float,
+) -> SeqTable:
+    """Create a SeqTable based on the parameters of a stop flow measurement
+
+    Args:
+        pre_stop_frames: Number of frames to take initially, before flow stops
+        post_stop_frames: Number of frames to take after flow stops
+        exposure: Exposure time of each frame (excluding deadtime)
+        shutter_time: Time period (seconds) to wait for the shutter to open fully before
+            beginning acquisition
+        deadtime: Dead time to leave between frames, dependant on the
+            instruments involved
+        period: Time period (seconds) to wait after arming the detector
+            before taking the first batch of frames
+
+    Returns:
+        SeqTable: SeqTable that will result in a series of triggers for the measurement
+    """
+
+    total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
+    pre_delay = max(period - 2 * shutter_time - total_gate_time, 0)
+
+    return seq_table_from_rows(
         # Wait for pre-delay then open shutter
         SeqTableRow(
             time1=in_micros(pre_delay),
@@ -180,10 +254,3 @@ def prepare_seq_table_flyer_and_det(
         # Add the shutter close
         SeqTableRow(time2=in_micros(shutter_time)),
     )
-
-    table_info = SeqTableInfo(table, repeats=1)
-
-    for det in detectors:
-        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
-    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
-    yield from bps.wait(group="prep")

@@ -244,19 +244,19 @@ def stopflow_seq_table(
         # Close shutter and wait for trigger
         SeqTableRow(
             time1=in_micros(shutter_time),
-            outa1=False, # close the shutter
+            outa1=False,  # close the shutter
         ),
         # reopen the shutter once the SEQ1.BIT_A is high
         SeqTableRow(
             trigger=SeqTrigger.BITA_1,
             time1=in_micros(shutter_time),
-            outa1=True, # open the shutter
+            outa1=True,  # open the shutter
         ),
         # Do m triggers after BITA=1
         SeqTableRow(
             repeats=post_stop_frames,
             time1=in_micros(exposure),
-            outa1=True, # keeping shutter open
+            outa1=True,  # keeping shutter open
             outb1=True,
             time2=in_micros(deadtime),
             outa2=True,

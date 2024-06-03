@@ -4,6 +4,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/main/"
   },
   {
+    "version": "44-stopflow-plan-should-close-the-shutter-between-acquisition-sequences",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/44-stopflow-plan-should-close-the-shutter-between-acquisition-sequences/"
+  },
+  {
     "version": "add-compliance-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },

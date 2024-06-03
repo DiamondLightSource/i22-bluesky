@@ -24,15 +24,15 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/format-stopflow/"
   },
   {
+    "version": "panda-notes-patch",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/panda-notes-patch/"
+  },
+  {
     "version": "remove-3.9",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-3.9/"
   },
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
-  },
-  {
-    "version": "tidy-stopflow",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/tidy-stopflow/"
   }
 ]

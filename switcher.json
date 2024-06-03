@@ -34,5 +34,9 @@
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
+  },
+  {
+    "version": "settings-json-ruff",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/settings-json-ruff/"
   }
 ]

@@ -8,6 +8,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/44-stopflow-plan-should-close-the-shutter-between-acquisition-sequences/"
   },
   {
+    "version": "49-stress-test-stopflow-plan",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/49-stress-test-stopflow-plan/"
+  },
+  {
     "version": "add-compliance-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },
@@ -34,9 +38,5 @@
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
-  },
-  {
-    "version": "settings-json-ruff",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/settings-json-ruff/"
   }
 ]

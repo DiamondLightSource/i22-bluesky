@@ -40,46 +40,51 @@ from ophyd_async.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import fly_and_collect
 
 DEFAULT_DETECTORS = [
-            "saxs",
-            "waxs",
-            # "oav",
-            # "i0",
-            # "it",
-        ]
+    "saxs",
+    "waxs",
+    # "oav",
+    "i0",
+    "it",
+]
 
 DEFAULT_BASELINE_MEASUREMENTS = [
-            "fswitch",
-            "slits_1",
-            "slits_2",
-            "slits_3",
-            # "slits_4", Until we make this device
-            "slits_5",
-            "slits_6",
-            "hfm",
-            "vfm",
-        ]
+    "fswitch",
+    "slits_1",
+    "slits_2",
+    "slits_3",
+    # "slits_4", Until we make this device
+    "slits_5",
+    "slits_6",
+    "hfm",
+    "vfm",
+]
+
+DEFAULT_PANDA = "panda1"
+
 
 @attach_data_session_metadata_decorator()
-def count_stopflow_devices(devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS)) -> MsgGenerator:
+def count_stopflow_devices(
+    num: int = 1,
+    devices: list[Readable] = inject(
+        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS + [DEFAULT_PANDA]
+    ),
+) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
     stopflow plan by default
     """
 
-    yield from bp.count(devices)
+    yield from bp.count(devices, num=num)
+
 
 def stopflow(
     exposure: float,
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = inject("panda1"),
-    detectors: List[StandardDetector] = inject(
-        DEFAULT_DETECTORS
-    ),
-    baseline: List[Readable] = inject(
-        DEFAULT_BASELINE_MEASUREMENTS
-    ),
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """

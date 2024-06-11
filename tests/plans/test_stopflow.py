@@ -1,10 +1,11 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
+from bluesky.run_engine import RunEngine
 from ophyd_async.panda import SeqTable, SeqTrigger
 
-from i22_bluesky.plans.stopflow import (
-    stopflow_seq_table,
-)
+from i22_bluesky.plans.stopflow import count_stopflow_devices, stopflow_seq_table
 
 SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
     # Very simple case, 1 frame on each side and 1 second
@@ -89,3 +90,26 @@ def test_stopflow_seq_table(
     expected_seq_table: SeqTable,
 ):
     np.testing.assert_equal(generated_seq_table, expected_seq_table)
+
+
+def test_count_devices_calls_count():
+    RE = RunEngine()
+    expected_devices = [
+        "saxs",
+        "waxs",
+        "i0",
+        "it",
+        "fswitch",
+        "slits_1",
+        "slits_2",
+        "slits_3",
+        "slits_5",
+        "slits_6",
+        "hfm",
+        "vfm",
+        "panda1",
+    ]
+
+    with patch("i22_bluesky.plans.stopflow.bp.count") as mock_count:
+        RE(count_stopflow_devices())
+    mock_count.assert_called_once_with(expected_devices, num=1)

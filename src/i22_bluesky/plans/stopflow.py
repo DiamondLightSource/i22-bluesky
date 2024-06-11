@@ -20,11 +20,12 @@
 from typing import Any, Dict, List, Optional
 
 import bluesky.plan_stubs as bps
+import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
 from dls_bluesky_core.core import MsgGenerator
 from dodal.common import inject
-from dodal.common.visit import attach_metadata_decorator
+from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
@@ -38,24 +39,15 @@ from ophyd_async.panda._table import (
 from ophyd_async.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import fly_and_collect
 
-
-def stopflow(
-    exposure: float,
-    post_stop_frames: int,
-    pre_stop_frames: int = 0,
-    shutter_time: float = 4e-3,
-    panda: HDFPanda = inject("panda1"),
-    detectors: List[StandardDetector] = inject(
-        [
+DEFAULT_DETECTORS = [
             "saxs",
             "waxs",
-            "oav",
-            "i0",
-            "it",
+            # "oav",
+            # "i0",
+            # "it",
         ]
-    ),
-    baseline: List[Readable] = inject(
-        [
+
+DEFAULT_BASELINE_MEASUREMENTS = [
             "fswitch",
             "slits_1",
             "slits_2",
@@ -66,6 +58,27 @@ def stopflow(
             "hfm",
             "vfm",
         ]
+
+@attach_data_session_metadata_decorator()
+def count_stopflow_devices(devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS)) -> MsgGenerator:
+    """
+    Take a reading from all devices that are used in the
+    stopflow plan by default
+    """
+
+    yield from bp.count(devices)
+
+def stopflow(
+    exposure: float,
+    post_stop_frames: int,
+    pre_stop_frames: int = 0,
+    shutter_time: float = 4e-3,
+    panda: HDFPanda = inject("panda1"),
+    detectors: List[StandardDetector] = inject(
+        DEFAULT_DETECTORS
+    ),
+    baseline: List[Readable] = inject(
+        DEFAULT_BASELINE_MEASUREMENTS
     ),
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
@@ -117,7 +130,7 @@ def stopflow(
     _md.update(metadata or {})
 
     @bpp.baseline_decorator(baseline)
-    @attach_metadata_decorator(provider=None)
+    @attach_data_session_metadata_decorator()
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():

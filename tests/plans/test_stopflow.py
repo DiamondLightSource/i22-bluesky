@@ -1,10 +1,15 @@
 import numpy as np
 import pytest
+from bluesky.run_engine import RunEngine
+from ophyd_async.core import (
+    StandardDetector,
+    get_mock_put,
+    set_mock_value,
+    set_mock_values,
+)
 from ophyd_async.panda import SeqTable, SeqTrigger
 
-from i22_bluesky.plans.stopflow import (
-    stopflow_seq_table,
-)
+from i22_bluesky.plans.stopflow import stopflow, stopflow_seq_table
 
 SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
     # Very simple case, 1 frame on each side and 1 second
@@ -89,3 +94,32 @@ def test_stopflow_seq_table(
     expected_seq_table: SeqTable,
 ):
     np.testing.assert_equal(generated_seq_table, expected_seq_table)
+
+
+async def test_stopflow_plan():
+    from dodal.beamlines import i22 as i22
+
+    RE = RunEngine()
+
+    saxs = i22.saxs(fake_with_ophyd_sim=True)
+    waxs = i22.waxs(fake_with_ophyd_sim=True)
+    panda = i22.panda1(fake_with_ophyd_sim=True)
+
+    for pilatus in [saxs, waxs]:
+        set_mock_value(pilatus.hdf.file_path_exists, True)
+        set_mock_value(pilatus.drv.armed_for_triggers, True)
+    set_mock_value(panda.pcap.active, True)
+
+    RE(
+        stopflow(
+            0.1,
+            50,
+            detectors=[saxs, waxs],
+            panda=panda,
+            baseline=[],
+        )
+    )
+
+    # detector: StandardDetector
+    for detector in [saxs, waxs]:
+        assert (await detector.hdf.num_captured.get_value()) == 50

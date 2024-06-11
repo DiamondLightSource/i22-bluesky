@@ -42,5 +42,9 @@
   {
     "version": "remove-boilerplate-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/remove-boilerplate-tests/"
+  },
+  {
+    "version": "stopflow-testing",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/stopflow-testing/"
   }
 ]

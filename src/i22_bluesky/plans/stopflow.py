@@ -43,8 +43,8 @@ DEFAULT_DETECTORS = [
     "saxs",
     "waxs",
     # "oav",
-    # "i0",
-    # "it",
+    "i0",
+    "it",
 ]
 
 DEFAULT_BASELINE_MEASUREMENTS = [
@@ -59,17 +59,22 @@ DEFAULT_BASELINE_MEASUREMENTS = [
     "vfm",
 ]
 
+DEFAULT_PANDA = "panda1"
+
 
 @attach_data_session_metadata_decorator()
 def count_stopflow_devices(
-    devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS),
+    num: int = 1,
+    devices: list[Readable] = inject(
+        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS + [DEFAULT_PANDA]
+    ),
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
     stopflow plan by default
     """
 
-    yield from bp.count(devices)
+    yield from bp.count(devices, num=num)
 
 
 def stopflow(
@@ -77,7 +82,7 @@ def stopflow(
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = inject("panda1"),
+    panda: HDFPanda = inject(DEFAULT_PANDA),
     detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
     baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
     metadata: Optional[Dict[str, Any]] = None,

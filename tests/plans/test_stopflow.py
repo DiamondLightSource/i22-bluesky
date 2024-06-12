@@ -1,11 +1,24 @@
+import asyncio
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 from bluesky.run_engine import RunEngine
+from dodal.devices.tetramm import TetrammDetector
+from ophyd_async.core import (
+    callback_on_mock_put,
+    get_mock_put,
+    set_mock_value,
+    set_mock_values,
+)
+from ophyd_async.epics.areadetector.pilatus import PilatusDetector
 from ophyd_async.panda import SeqTable, SeqTrigger
 
-from i22_bluesky.plans.stopflow import count_stopflow_devices, stopflow_seq_table
+from i22_bluesky.plans.stopflow import (
+    check_detectors_for_stopflow,
+    check_stopflow_assembly,
+    stopflow_seq_table,
+)
 
 SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
     # Very simple case, 1 frame on each side and 1 second
@@ -92,24 +105,63 @@ def test_stopflow_seq_table(
     np.testing.assert_equal(generated_seq_table, expected_seq_table)
 
 
-def test_count_devices_calls_count():
+def test_check_detectors_for_stopflow_excludes_tetramms():
+    from dodal.beamlines.i22 import i0, it, saxs, waxs
+
     RE = RunEngine()
-    expected_devices = [
-        "saxs",
-        "waxs",
-        "i0",
-        "it",
-        "fswitch",
-        "slits_1",
-        "slits_2",
-        "slits_3",
-        "slits_5",
-        "slits_6",
-        "hfm",
-        "vfm",
-        "panda1",
+
+    expected_detectors = [
+        saxs(fake_with_ophyd_sim=True),
+        waxs(fake_with_ophyd_sim=True),
+    ]
+
+    detectors = expected_detectors + [
+        i0(fake_with_ophyd_sim=True),
+        it(fake_with_ophyd_sim=True),
     ]
 
     with patch("i22_bluesky.plans.stopflow.bp.count") as mock_count:
-        RE(count_stopflow_devices())
-    mock_count.assert_called_once_with(expected_devices, num=1)
+        RE(check_detectors_for_stopflow(devices=detectors))
+    mock_count.assert_called_once_with(expected_detectors, num=1)
+
+
+def test_check_saxs_and_waxs_assembly_for_stopflow():
+    from dodal.beamlines.i22 import i0, it, panda1, saxs, waxs
+
+    RE = RunEngine()
+
+    pilatuses = [
+        saxs(fake_with_ophyd_sim=True),
+        waxs(fake_with_ophyd_sim=True),
+    ]
+    detectors: list[PilatusDetector | TetrammDetector] = pilatuses + [
+        i0(fake_with_ophyd_sim=True),
+        it(fake_with_ophyd_sim=True),
+    ]
+    panda = panda1(fake_with_ophyd_sim=True)
+
+    for pilatus in pilatuses:
+        set_mock_value(pilatus.drv.armed_for_triggers, True)
+    for detector in detectors:
+        set_mock_value(detector.hdf.file_path_exists, True)
+
+    # set_mock_value(panda.pcap.active, True)
+
+    async def simulate_triggers():
+        set_mock_value(panda.pcap.active, True)
+        await asyncio.sleep(0.1)
+        set_mock_value(panda.pcap.active, False)
+        await asyncio.sleep(0.1)
+
+    callback_on_mock_put(
+        panda.pcap.arm,
+        lambda v, **_: asyncio.create_task(simulate_triggers()),
+    )
+
+    RE(
+        check_stopflow_assembly(
+            panda=panda,
+            detectors=detectors,
+            baseline=[],
+        )
+    )

@@ -25,6 +25,7 @@ import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
 from dls_bluesky_core.core import MsgGenerator
 from dodal.common import inject
+from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
@@ -37,7 +38,10 @@ from ophyd_async.panda._table import (
     seq_table_from_rows,
 )
 from ophyd_async.panda._trigger import SeqTableInfo
-from ophyd_async.plan_stubs import fly_and_collect
+from ophyd_async.plan_stubs import (
+    fly_and_collect,
+    time_resolved_fly_and_collect_with_static_seq_table,
+)
 
 DEFAULT_DETECTORS = [
     "saxs",
@@ -63,8 +67,8 @@ DEFAULT_PANDA = "panda1"
 
 
 @attach_data_session_metadata_decorator()
-def count_stopflow_devices(
-    num: int = 1,
+def check_detectors_for_stopflow(
+    num_frames: int = 1,
     devices: list[Readable] = inject(
         DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS + [DEFAULT_PANDA]
     ),
@@ -74,7 +78,39 @@ def count_stopflow_devices(
     stopflow plan by default
     """
 
-    yield from bp.count(devices, num=num)
+    # Tetramms do not support software triggering
+    software_triggerable_devices = [
+        device for device in devices if not isinstance(device, TetrammDetector)
+    ]
+    yield from bp.count(
+        software_triggerable_devices,
+        num=num_frames,
+    )
+
+
+def check_stopflow_assembly(
+    exposure: float = 0.1,
+    num_frames: int = 10,
+    shutter_time: float = 4e-3,
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+) -> MsgGenerator:
+    """
+    Simplified version of the stopflow plan that should catch most
+    wiring/assembly/detector setup errors, does not require triggering a stop flow,
+    that can be tested with the main plan.
+    """
+
+    yield from stopflow(
+        exposure=exposure,
+        post_stop_frames=0,
+        pre_stop_frames=num_frames,
+        shutter_time=shutter_time,
+        panda=panda,
+        detectors=detectors,
+        baseline=baseline,
+    )
 
 
 def stopflow(

@@ -62,6 +62,8 @@ DEFAULT_BASELINE_MEASUREMENTS = [
     "slits_6",
     "hfm",
     "vfm",
+    "undulator",
+    # "dcm"
 ]
 
 DEFAULT_PANDA = "panda1"

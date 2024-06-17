@@ -10,8 +10,8 @@ from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 
-from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.stubs import load
+from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?

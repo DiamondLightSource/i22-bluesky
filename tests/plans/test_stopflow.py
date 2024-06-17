@@ -7,9 +7,7 @@ from bluesky.run_engine import RunEngine
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import (
     callback_on_mock_put,
-    get_mock_put,
     set_mock_value,
-    set_mock_values,
 )
 from ophyd_async.epics.areadetector.pilatus import PilatusDetector
 from ophyd_async.panda import SeqTable, SeqTrigger

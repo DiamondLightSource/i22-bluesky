@@ -1,16 +1,24 @@
 import os
-
-from typing import Generator, List, Optional
-from dls_bluesky_core.core import MsgGenerator
-from ophyd_async.core import Device, get_signal_values, set_signal_values, save_to_yaml, load_from_yaml, walk_rw_signals
 from pathlib import Path
+
+from dls_bluesky_core.core import MsgGenerator
+from ophyd_async.core import (
+    Device,
+    get_signal_values,
+    load_from_yaml,
+    save_to_yaml,
+    set_signal_values,
+    walk_rw_signals,
+)
 
 from i22_bluesky.util.get_root import get_project_root
 
 ROOT_SAVE_DIR = get_project_root() / "pvs"
 
 
-def save(devices: list[Device], config_id: str, ignore_signals: list[str] | None = None) -> MsgGenerator:
+def save(
+    devices: list[Device], config_id: str, ignore_signals: list[str] | None = None
+) -> MsgGenerator:
     for device in devices:
         yield from save_device(device, config_id, ignore_signals)
 
@@ -20,7 +28,9 @@ def load(devices: list[Device], config_id: str) -> MsgGenerator:
         yield from load_device(device, config_id)
 
 
-def save_device(device: Device, config_id: str, ignore_signals: list[str] | None = None) -> MsgGenerator:
+def save_device(
+    device: Device, config_id: str, ignore_signals: list[str] | None = None
+) -> MsgGenerator:
     signals = walk_rw_signals(device)
     values = yield from get_signal_values(signals, ignore=ignore_signals or [])
 
@@ -35,10 +45,7 @@ def save_device(device: Device, config_id: str, ignore_signals: list[str] | None
     save_to_yaml([values], str(file_path))
 
 
-def load_device(
-    device: Device,
-    config_id: str
-) -> MsgGenerator:
+def load_device(device: Device, config_id: str) -> MsgGenerator:
     # Pretend we have a database, which would be sensible, but it's actually files
     device_directory = _device_directory(device, config_id)
     file_name = device.name + ".yml"

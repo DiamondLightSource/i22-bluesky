@@ -3,9 +3,9 @@ from .stopflow import (
     check_detectors_for_stopflow,
     check_stopflow_assembly,
     check_stopflow_experiment,
-    stopflow,
     save_stopflow,
-    stress_test_stopflow
+    stopflow,
+    stress_test_stopflow,
 )
 
 __all__ = [

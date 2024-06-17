@@ -20,10 +20,12 @@
 from typing import Any, Dict, List, Optional
 
 import bluesky.plan_stubs as bps
+import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
 from dls_bluesky_core.core import MsgGenerator
 from dodal.common import inject
+from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
@@ -36,7 +38,130 @@ from ophyd_async.panda._table import (
     seq_table_from_rows,
 )
 from ophyd_async.panda._trigger import SeqTableInfo
-from ophyd_async.plan_stubs import fly_and_collect
+from ophyd_async.plan_stubs import (
+    fly_and_collect,
+)
+
+from i22_bluesky.stubs import load, save
+
+DEFAULT_DETECTORS = [
+    "saxs",
+    "waxs",
+    # "oav",
+    "i0",
+    "it",
+]
+
+DEFAULT_BASELINE_MEASUREMENTS = [
+    "fswitch",
+    "slits_1",
+    "slits_2",
+    "slits_3",
+    # "slits_4", Until we make this device
+    "slits_5",
+    "slits_6",
+    "hfm",
+    "vfm",
+    "undulator",
+    # "dcm"
+]
+
+DEFAULT_PANDA = "panda1"
+
+
+@attach_data_session_metadata_decorator()
+def check_detectors_for_stopflow(
+    num_frames: int = 1,
+    devices: list[Readable] = inject(
+        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS + [DEFAULT_PANDA]
+    ),
+) -> MsgGenerator:
+    """
+    Take a reading from all devices that are used in the
+    stopflow plan by default
+    """
+
+    # Tetramms do not support software triggering
+    software_triggerable_devices = [
+        device for device in devices if not isinstance(device, TetrammDetector)
+    ]
+    yield from bp.count(
+        software_triggerable_devices,
+        num=num_frames,
+    )
+
+
+def check_stopflow_assembly(
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+) -> MsgGenerator:
+    """
+    Simplified version of the stopflow plan that should catch most
+    wiring/assembly/detector setup errors, does not require triggering a stop flow,
+    that can be tested with the main plan.
+    """
+
+    yield from stopflow(
+        exposure=0.1,
+        post_stop_frames=0,
+        pre_stop_frames=10,
+        shutter_time=4e-3,
+        panda=panda,
+        detectors=detectors,
+        baseline=baseline,
+    )
+
+
+def check_stopflow_experiment(
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+) -> MsgGenerator:
+    """
+    Full test of stopflow experiment functionality with sensible values
+    """
+
+    yield from stopflow(
+        exposure=0.1,
+        post_stop_frames=10,
+        pre_stop_frames=10,
+        shutter_time=4e-3,
+        panda=panda,
+        detectors=detectors,
+        baseline=baseline,
+    )
+
+
+def stress_test_stopflow(
+    frame_rate: float = 250.0,
+    post_stop_frames: int = 2000,
+    pre_stop_frames: int = 8000,
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+) -> MsgGenerator:
+    # Exposure time excludes deadtime, so calculate the minimum possible exposure
+    # time given the dead time of various detectors and a taret of 250Hz.
+    duty_cycle = 1.0 / frame_rate
+    deadtime = max(det.controller.get_deadtime(duty_cycle) for det in detectors)
+    exposure = duty_cycle - deadtime
+
+    yield from stopflow(
+        exposure=exposure,
+        post_stop_frames=post_stop_frames,
+        pre_stop_frames=pre_stop_frames,
+        shutter_time=4e-3,
+        panda=panda,
+        detectors=detectors,
+        baseline=baseline,
+    )
+
+
+def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+    yield from save(
+        [panda], "stopflow", ignore_signals=["pcap.capture", "data.capture"]
+    )
 
 
 def stopflow(
@@ -44,29 +169,9 @@ def stopflow(
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = inject("panda1"),
-    detectors: List[StandardDetector] = inject(
-        [
-            "saxs",
-            "waxs",
-            "oav",
-            "i0",
-            "it",
-        ]
-    ),
-    baseline: List[Readable] = inject(
-        [
-            "fswitch",
-            "slits_1",
-            "slits_2",
-            "slits_3",
-            # "slits_4", Until we make this device
-            "slits_5",
-            "slits_6",
-            "hfm",
-            "vfm",
-        ]
-    ),
+    panda: HDFPanda = inject(DEFAULT_PANDA),
+    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """
@@ -117,10 +222,11 @@ def stopflow(
     detectors = detectors + [panda]
 
     @bpp.baseline_decorator(baseline)
-    @attach_data_session_metadata_decorator(provider=None)
+    @attach_data_session_metadata_decorator()
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
+        yield from load([panda], "stopflow")
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,
@@ -225,32 +331,40 @@ def stopflow_seq_table(
     total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
     pre_delay = max(period - 2 * shutter_time - total_gate_time, 0)
 
-    return seq_table_from_rows(
+    rows = [
         # Wait for pre-delay then open shutter
         SeqTableRow(
             time1=in_micros(pre_delay),
             time2=in_micros(shutter_time),
             outa2=True,
-        ),
-        # Keeping shutter open, do n triggers
-        SeqTableRow(
-            repeats=pre_stop_frames,
-            time1=in_micros(exposure),
-            outa1=True,
-            outb1=True,
-            time2=in_micros(deadtime),
-            outa2=True,
-        ),
-        # Do m triggers after BITA=1
-        SeqTableRow(
-            trigger=SeqTrigger.BITA_1,
-            repeats=post_stop_frames,
-            time1=in_micros(exposure),
-            outa1=True,
-            outb1=True,
-            time2=in_micros(deadtime),
-            outa2=True,
-        ),
-        # Add the shutter close
-        SeqTableRow(time2=in_micros(shutter_time)),
-    )
+        )
+    ]
+
+    # Keeping shutter open, do n triggers
+    if pre_stop_frames > 0:
+        rows.append(
+            SeqTableRow(
+                repeats=pre_stop_frames,
+                time1=in_micros(exposure),
+                outa1=True,
+                outb1=True,
+                time2=in_micros(deadtime),
+                outa2=True,
+            )
+        )
+    # Do m triggers after BITA=1
+    if post_stop_frames > 0:
+        rows.append(
+            SeqTableRow(
+                trigger=SeqTrigger.BITA_1,
+                repeats=post_stop_frames,
+                time1=in_micros(exposure),
+                outa1=True,
+                outb1=True,
+                time2=in_micros(deadtime),
+                outa2=True,
+            )
+        )
+    # Add the shutter close
+    rows.append(SeqTableRow(time2=in_micros(shutter_time)))
+    return seq_table_from_rows(*rows)

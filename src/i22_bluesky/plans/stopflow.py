@@ -108,13 +108,13 @@ def stopflow(
     }
     # Add panda to detectors so it captures and writes data.
     # It needs to be in metadata but not metadata planargs.
-    detectors = detectors + [panda]
     _md = {
         "detectors": [device.name for device in detectors],
         "plan_args": plan_args,
         "hints": {},
     }
     _md.update(metadata or {})
+    detectors = detectors + [panda]
 
     @bpp.baseline_decorator(baseline)
     @attach_metadata_decorator(provider=None)

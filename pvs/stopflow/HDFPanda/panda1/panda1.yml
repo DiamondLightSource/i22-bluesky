@@ -176,14 +176,10 @@
   data.capture: null
   data.capture_mode: FOREVER
   data.createdirectory: 0
-  data.datasets:
-    name:
-    - timestamps
-    type:
-    - float64
+  data.datasets: null
   data.flush_period: 0.0
   data.hdf_directory: /dls/i22/data/2024/cm37271-2/bluesky
-  data.hdf_file_name: i22-2-panda1.h5
+  data.hdf_file_name: i22-3-panda1.h5
   data.num_capture: 0
   div.1.divisor: 0.0
   div.1.enable: ZERO

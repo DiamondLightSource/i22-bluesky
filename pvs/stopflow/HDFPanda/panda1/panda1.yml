@@ -10,6 +10,7 @@
   calc.1.inpd: ZERO
   calc.1.label: Position calc
   calc.1.out_capture: 'No'
+  calc.1.out_dataset: ''
   calc.1.out_offset: 0.0
   calc.1.out_scale: 1.0
   calc.1.out_units: ''
@@ -25,6 +26,7 @@
   calc.2.inpd: ZERO
   calc.2.label: Position calc
   calc.2.out_capture: 'No'
+  calc.2.out_dataset: ''
   calc.2.out_offset: 0.0
   calc.2.out_scale: 1.0
   calc.2.out_units: ''
@@ -51,6 +53,7 @@
   counter.1.max: 0
   counter.1.min: 0
   counter.1.out_capture: 'No'
+  counter.1.out_dataset: ''
   counter.1.out_offset: 0.0
   counter.1.out_scale: 1.0
   counter.1.out_units: ''
@@ -66,6 +69,7 @@
   counter.2.max: 0
   counter.2.min: 0
   counter.2.out_capture: 'No'
+  counter.2.out_dataset: ''
   counter.2.out_offset: 0.0
   counter.2.out_scale: 1.0
   counter.2.out_units: ''
@@ -81,6 +85,7 @@
   counter.3.max: 0
   counter.3.min: 0
   counter.3.out_capture: 'No'
+  counter.3.out_dataset: ''
   counter.3.out_offset: 0.0
   counter.3.out_scale: 1.0
   counter.3.out_units: ''
@@ -96,6 +101,7 @@
   counter.4.max: 0
   counter.4.min: 0
   counter.4.out_capture: 'No'
+  counter.4.out_dataset: ''
   counter.4.out_offset: 0.0
   counter.4.out_scale: 1.0
   counter.4.out_units: ''
@@ -111,6 +117,7 @@
   counter.5.max: 0
   counter.5.min: 0
   counter.5.out_capture: 'No'
+  counter.5.out_dataset: ''
   counter.5.out_offset: 0.0
   counter.5.out_scale: 1.0
   counter.5.out_units: ''
@@ -126,6 +133,7 @@
   counter.6.max: 0
   counter.6.min: 0
   counter.6.out_capture: 'No'
+  counter.6.out_dataset: ''
   counter.6.out_offset: 0.0
   counter.6.out_scale: 1.0
   counter.6.out_units: ''
@@ -141,6 +149,7 @@
   counter.7.max: 0
   counter.7.min: 0
   counter.7.out_capture: 'No'
+  counter.7.out_dataset: ''
   counter.7.out_offset: 0.0
   counter.7.out_scale: 1.0
   counter.7.out_units: ''
@@ -156,6 +165,7 @@
   counter.8.max: 0
   counter.8.min: 0
   counter.8.out_capture: 'No'
+  counter.8.out_dataset: ''
   counter.8.out_offset: 0.0
   counter.8.out_scale: 1.0
   counter.8.out_units: ''
@@ -165,9 +175,15 @@
   counter.8.trig_delay: 0
   data.capture: null
   data.capture_mode: FOREVER
+  data.createdirectory: 0
+  data.datasets:
+    name:
+    - timestamps
+    type:
+    - float64
   data.flush_period: 0.0
   data.hdf_directory: /dls/i22/data/2024/cm37271-2/bluesky
-  data.hdf_file_name: i22-1-panda1.h5
+  data.hdf_file_name: i22-2-panda1.h5
   data.num_capture: 0
   div.1.divisor: 0.0
   div.1.enable: ZERO
@@ -189,6 +205,7 @@
   filter.1.label: Filter block modes are Difference and Divider
   filter.1.mode: difference
   filter.1.out_capture: 'No'
+  filter.1.out_dataset: ''
   filter.1.out_offset: 0.0
   filter.1.out_scale: 1.0
   filter.1.out_units: ''
@@ -200,6 +217,7 @@
   filter.2.label: Filter block modes are Difference and Divider
   filter.2.mode: difference
   filter.2.out_capture: 'No'
+  filter.2.out_dataset: ''
   filter.2.out_offset: 0.0
   filter.2.out_scale: 1.0
   filter.2.out_units: ''
@@ -221,6 +239,7 @@
   inenc.1.rst_on_z: '1'
   inenc.1.setp: 0
   inenc.1.val_capture: 'No'
+  inenc.1.val_dataset: ''
   inenc.1.val_offset: 0.0
   inenc.1.val_scale: 1.0
   inenc.1.val_units: ''
@@ -240,6 +259,7 @@
   inenc.2.rst_on_z: '1'
   inenc.2.setp: 0
   inenc.2.val_capture: 'No'
+  inenc.2.val_dataset: ''
   inenc.2.val_offset: 0.0
   inenc.2.val_scale: 1.0
   inenc.2.val_units: ''
@@ -259,6 +279,7 @@
   inenc.3.rst_on_z: '1'
   inenc.3.setp: 0
   inenc.3.val_capture: 'No'
+  inenc.3.val_dataset: ''
   inenc.3.val_offset: 0.0
   inenc.3.val_scale: 1.0
   inenc.3.val_units: ''
@@ -278,6 +299,7 @@
   inenc.4.rst_on_z: '1'
   inenc.4.setp: 0
   inenc.4.val_capture: 'No'
+  inenc.4.val_dataset: ''
   inenc.4.val_offset: 0.0
   inenc.4.val_scale: 1.0
   inenc.4.val_units: ''
@@ -497,11 +519,15 @@
   outenc.4.val: ZERO
   outenc.4.z: ZERO
   outenc.4.z_delay: 0
-  pcap.arm: 1
+  pcap.arm: true
   pcap.bits0_capture: 'No'
+  pcap.bits0_dataset: ''
   pcap.bits1_capture: 'No'
+  pcap.bits1_dataset: ''
   pcap.bits2_capture: 'No'
+  pcap.bits2_dataset: ''
   pcap.bits3_capture: 'No'
+  pcap.bits3_dataset: ''
   pcap.capture: null
   pcap.enable: SEQ1.ACTIVE
   pcap.enable_delay: 0
@@ -509,13 +535,17 @@
   pcap.gate_delay: 0
   pcap.label: Position capture control
   pcap.samples_capture: 'No'
+  pcap.samples_dataset: ''
   pcap.shift_sum: 0.0
   pcap.trig: SEQ1.OUTB
   pcap.trig_delay: 0
   pcap.trig_edge: Rising
   pcap.ts_end_capture: 'No'
+  pcap.ts_end_dataset: ''
   pcap.ts_start_capture: Value
+  pcap.ts_start_dataset: timestamps
   pcap.ts_trig_capture: 'No'
+  pcap.ts_trig_dataset: ''
   pcomp.1.dir: Positive
   pcomp.1.enable: ZERO
   pcomp.1.enable_delay: 0
@@ -542,6 +572,7 @@
   pgen.1.enable_delay: 0
   pgen.1.label: Position generator
   pgen.1.out_capture: 'No'
+  pgen.1.out_dataset: ''
   pgen.1.out_offset: 0.0
   pgen.1.out_scale: 1.0
   pgen.1.out_units: ''
@@ -554,6 +585,7 @@
   pgen.2.enable_delay: 0
   pgen.2.label: Position generator
   pgen.2.out_capture: 'No'
+  pgen.2.out_dataset: ''
   pgen.2.out_offset: 0.0
   pgen.2.out_scale: 1.0
   pgen.2.out_units: ''
@@ -630,26 +662,25 @@
   seq.1.prescale_units: us
   seq.1.repeats: 1.0
   seq.1.table:
-    outa1: [0, 1, 1, 0]
-    outa2: [1, 1, 1, 0]
-    outb1: [0, 1, 1, 0]
-    outb2: [0, 0, 0, 0]
-    outc1: [0, 0, 0, 0]
-    outc2: [0, 0, 0, 0]
-    outd1: [0, 0, 0, 0]
-    outd2: [0, 0, 0, 0]
-    oute1: [0, 0, 0, 0]
-    oute2: [0, 0, 0, 0]
-    outf1: [0, 0, 0, 0]
-    outf2: [0, 0, 0, 0]
-    position: [0, 0, 0, 0]
-    repeats: [1, 10, 10, 1]
-    time1: [0, 100000, 100000, 0]
-    time2: [4000, 950, 950, 4000]
+    outa1: [0, 1, 0]
+    outa2: [1, 1, 0]
+    outb1: [0, 1, 0]
+    outb2: [0, 0, 0]
+    outc1: [0, 0, 0]
+    outc2: [0, 0, 0]
+    outd1: [0, 0, 0]
+    outd2: [0, 0, 0]
+    oute1: [0, 0, 0]
+    oute2: [0, 0, 0]
+    outf1: [0, 0, 0]
+    outf2: [0, 0, 0]
+    position: [0, 0, 0]
+    repeats: [1, 10, 1]
+    time1: [0, 100000, 0]
+    time2: [4000, 950, 4000]
     trigger:
     - Immediate
     - Immediate
-    - BITA=1
     - Immediate
   seq.2.bita: ZERO
   seq.2.bita_delay: 0
@@ -686,18 +717,22 @@
     trigger: []
   sfp2_sync_in.label: sfp panda synchronizer
   sfp2_sync_in.pos1_capture: 'No'
+  sfp2_sync_in.pos1_dataset: ''
   sfp2_sync_in.pos1_offset: 0.0
   sfp2_sync_in.pos1_scale: 1.0
   sfp2_sync_in.pos1_units: ''
   sfp2_sync_in.pos2_capture: 'No'
+  sfp2_sync_in.pos2_dataset: ''
   sfp2_sync_in.pos2_offset: 0.0
   sfp2_sync_in.pos2_scale: 1.0
   sfp2_sync_in.pos2_units: ''
   sfp2_sync_in.pos3_capture: 'No'
+  sfp2_sync_in.pos3_dataset: ''
   sfp2_sync_in.pos3_offset: 0.0
   sfp2_sync_in.pos3_scale: 1.0
   sfp2_sync_in.pos3_units: ''
   sfp2_sync_in.pos4_capture: 'No'
+  sfp2_sync_in.pos4_dataset: ''
   sfp2_sync_in.pos4_offset: 0.0
   sfp2_sync_in.pos4_scale: 1.0
   sfp2_sync_in.pos4_units: ''
@@ -740,18 +775,22 @@
   sfp2_sync_out.pos4: ZERO
   sfp3_sync_in.label: sfp panda synchronizer
   sfp3_sync_in.pos1_capture: 'No'
+  sfp3_sync_in.pos1_dataset: ''
   sfp3_sync_in.pos1_offset: 0.0
   sfp3_sync_in.pos1_scale: 1.0
   sfp3_sync_in.pos1_units: ''
   sfp3_sync_in.pos2_capture: 'No'
+  sfp3_sync_in.pos2_dataset: ''
   sfp3_sync_in.pos2_offset: 0.0
   sfp3_sync_in.pos2_scale: 1.0
   sfp3_sync_in.pos2_units: ''
   sfp3_sync_in.pos3_capture: 'No'
+  sfp3_sync_in.pos3_dataset: ''
   sfp3_sync_in.pos3_offset: 0.0
   sfp3_sync_in.pos3_scale: 1.0
   sfp3_sync_in.pos3_units: ''
   sfp3_sync_in.pos4_capture: 'No'
+  sfp3_sync_in.pos4_dataset: ''
   sfp3_sync_in.pos4_offset: 0.0
   sfp3_sync_in.pos4_scale: 1.0
   sfp3_sync_in.pos4_units: ''

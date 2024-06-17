@@ -13,10 +13,11 @@ from ophyd_async.core import (
 )
 from ophyd_async.epics.areadetector.pilatus import PilatusDetector
 from ophyd_async.panda import SeqTable, SeqTrigger
+from ophyd_async.panda._table import DatasetTable, PandaHdf5DatasetType
 
 from i22_bluesky.plans.stopflow import (
     check_detectors_for_stopflow,
-    check_stopflow_assembly,
+    stopflow,
     stopflow_seq_table,
 )
 
@@ -125,7 +126,8 @@ def test_check_detectors_for_stopflow_excludes_tetramms():
     mock_count.assert_called_once_with(expected_detectors, num=1)
 
 
-def test_check_saxs_and_waxs_assembly_for_stopflow():
+@pytest.mark.xfail(reason="Test WIP, can't quite simulate triggering behavior")
+def test_stopflow_plan():
     from dodal.beamlines.i22 import i0, it, panda1, saxs, waxs
 
     RE = RunEngine()
@@ -139,19 +141,29 @@ def test_check_saxs_and_waxs_assembly_for_stopflow():
         it(fake_with_ophyd_sim=True),
     ]
     panda = panda1(fake_with_ophyd_sim=True)
+    set_mock_value(
+        panda.data.datasets,
+        DatasetTable(
+            name=np.array(["time"]),
+            hdf5_type=[PandaHdf5DatasetType.FLOAT_64],
+        ),
+    )
 
     for pilatus in pilatuses:
         set_mock_value(pilatus.drv.armed_for_triggers, True)
     for detector in detectors:
         set_mock_value(detector.hdf.file_path_exists, True)
 
-    # set_mock_value(panda.pcap.active, True)
-
     async def simulate_triggers():
         set_mock_value(panda.pcap.active, True)
-        await asyncio.sleep(0.1)
+        set_mock_value(panda.seq[1].active, True)
+        await asyncio.sleep(0.01)
+        for detector in detectors:
+            set_mock_value(detector.hdf.num_captured, 20)
+        await asyncio.sleep(0.01)
         set_mock_value(panda.pcap.active, False)
-        await asyncio.sleep(0.1)
+        set_mock_value(panda.seq[1].active, False)
+        await asyncio.sleep(0.01)
 
     callback_on_mock_put(
         panda.pcap.arm,
@@ -159,7 +171,11 @@ def test_check_saxs_and_waxs_assembly_for_stopflow():
     )
 
     RE(
-        check_stopflow_assembly(
+        stopflow(
+            exposure=0.1,
+            post_stop_frames=10,
+            pre_stop_frames=10,
+            shutter_time=4e-3,
             panda=panda,
             detectors=detectors,
             baseline=[],

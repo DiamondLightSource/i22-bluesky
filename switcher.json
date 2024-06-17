@@ -20,10 +20,6 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },
   {
-    "version": "check-stopflow",
-    "url": "https://DiamondLightSource.github.io/i22-bluesky/check-stopflow/"
-  },
-  {
     "version": "dependabot_github_actions_codecov_codecov-action-4",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/dependabot_github_actions_codecov_codecov-action-4/"
   },

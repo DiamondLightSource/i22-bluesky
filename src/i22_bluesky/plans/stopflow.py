@@ -63,7 +63,8 @@ DEFAULT_BASELINE_MEASUREMENTS = [
     "hfm",
     "vfm",
     "undulator",
-    # "dcm"
+    "dcm",
+    "synchrotron",
 ]
 
 DEFAULT_PANDA = "panda1"

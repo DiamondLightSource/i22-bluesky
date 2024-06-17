@@ -24,7 +24,7 @@ import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
 from dls_bluesky_core.core import MsgGenerator
 from dodal.common import inject
-from dodal.common.visit import attach_metadata_decorator
+from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
 from ophyd_async.core.utils import in_micros
@@ -108,16 +108,16 @@ def stopflow(
     }
     # Add panda to detectors so it captures and writes data.
     # It needs to be in metadata but not metadata planargs.
-    detectors = detectors + [panda]
     _md = {
         "detectors": [device.name for device in detectors],
         "plan_args": plan_args,
         "hints": {},
     }
     _md.update(metadata or {})
+    detectors = detectors + [panda]
 
     @bpp.baseline_decorator(baseline)
-    @attach_metadata_decorator(provider=None)
+    @attach_data_session_metadata_decorator(provider=None)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():

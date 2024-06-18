@@ -161,7 +161,9 @@ def stress_test_stopflow(
 
 def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
     yield from save(
-        [panda], "stopflow", ignore_signals=["pcap.capture", "data.capture", "data.datasets"]
+        [panda],
+        "stopflow",
+        ignore_signals=["pcap.capture", "data.capture", "data.datasets"],
     )
 
 

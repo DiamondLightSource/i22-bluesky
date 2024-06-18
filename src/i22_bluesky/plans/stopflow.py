@@ -47,7 +47,7 @@ from i22_bluesky.stubs import load, save
 DEFAULT_DETECTORS = [
     "saxs",
     "waxs",
-    # "oav",
+    "oav",
     "i0",
     "it",
 ]

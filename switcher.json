@@ -24,6 +24,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/dependabot_github_actions_codecov_codecov-action-4/"
   },
   {
+    "version": "enable-oav",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/enable-oav/"
+  },
+  {
     "version": "fix-stopflow",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/fix-stopflow/"
   },

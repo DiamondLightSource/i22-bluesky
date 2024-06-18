@@ -16,6 +16,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/49-stress-test-stopflow-plan/"
   },
   {
+    "version": "65-exclude-slow-detectors",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/65-exclude-slow-detectors/"
+  },
+  {
     "version": "add-compliance-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },

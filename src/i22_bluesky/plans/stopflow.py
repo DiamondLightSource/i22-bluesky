@@ -44,13 +44,14 @@ from ophyd_async.plan_stubs import (
 
 from i22_bluesky.stubs import load, save
 
-DEFAULT_DETECTORS = [
+FAST_DETECTORS = [
     "saxs",
     "waxs",
-    # "oav",
     "i0",
     "it",
 ]
+
+DEFAULT_DETECTORS = FAST_DETECTORS + ["oav"]
 
 DEFAULT_BASELINE_MEASUREMENTS = [
     "fswitch",
@@ -200,6 +201,11 @@ def stopflow(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
+
+    # Check that all detectors supplied can actually go as
+    # fast as requested
+    raise_for_minimum_exposure_times(exposure, detectors)
+
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = [flyer] + detectors + [panda] + baseline
@@ -371,3 +377,29 @@ def stopflow_seq_table(
     # Add the shutter close
     rows.append(SeqTableRow(time2=in_micros(shutter_time)))
     return seq_table_from_rows(*rows)
+
+
+def raise_for_minimum_exposure_times(
+    exposure: float,
+    detectors: list[StandardDetector],
+) -> None:
+    minimum_exposure_times = {
+        "saxs": 1.0 / 250.0,
+        "waxs": 1.0 / 250.0,
+        "oav": 1.0 / 22.0,
+        "i0": 1.0 / 2e4,
+        "it": 1.0 / 2e4,
+    }
+    detectors_below_limit = [
+        detector
+        for detector in detectors
+        if exposure < minimum_exposure_times.get(detector.name, 0.0)
+    ]
+    if len(detectors_below_limit) > 0:
+        raise KeyError(
+            f"The exposure time requested was {exposure}, but "
+            "the following detectors do not support going "
+            f"that fast: {detectors_below_limit}. Try running the plan"
+            "without them. "
+            f"See minimum exposure time table: {minimum_exposure_times}"
+        )

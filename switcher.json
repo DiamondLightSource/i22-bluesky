@@ -40,6 +40,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/fix-stopflow-config/"
   },
   {
+    "version": "fix-stress-test",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/fix-stress-test/"
+  },
+  {
     "version": "format-stopflow",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/format-stopflow/"
   },

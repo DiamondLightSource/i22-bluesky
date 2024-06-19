@@ -136,7 +136,7 @@ def check_stopflow_experiment(
 
 
 def stress_test_stopflow(
-    frame_rate: float = 250.0,
+    frame_rate: float = 200.0,
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
     panda: HDFPanda = inject(DEFAULT_PANDA),
@@ -146,7 +146,7 @@ def stress_test_stopflow(
     # Exposure time excludes deadtime, so calculate the minimum possible exposure
     # time given the dead time of various detectors and a taret of 250Hz.
     duty_cycle = 1.0 / frame_rate
-    deadtime = max(det.controller.get_deadtime(duty_cycle) for det in detectors)
+    deadtime = max(det.controller.get_deadtime(1.0) for det in detectors)
     exposure = duty_cycle - deadtime
 
     yield from stopflow(
@@ -292,6 +292,7 @@ def prepare_seq_table_flyer_and_det(
         trigger=DetectorTrigger.constant_gate,
         deadtime=deadtime,
         livetime=exposure,
+        frame_timeout=60.0,
     )
 
     # Generate a seq table

@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -15,7 +15,10 @@ from ophyd_async.panda import SeqTable, SeqTrigger
 from ophyd_async.panda._table import DatasetTable, PandaHdf5DatasetType
 
 from i22_bluesky.plans import check_detectors_for_stopflow, stopflow
-from i22_bluesky.plans.stopflow import stopflow_seq_table
+from i22_bluesky.plans.stopflow import (
+    raise_for_minimum_exposure_times,
+    stopflow_seq_table,
+)
 
 SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
     # Very simple case, 1 frame on each side and 1 second
@@ -121,6 +124,29 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
         },
     ),
 )
+
+
+@pytest.mark.parametrize("exposure", [0.04, 0.01, 0.001])
+def test_exposure_time_raises(exposure: float):
+    detectors = []
+    for name in ["saxs", "waxs", "oav", "i0", "it"]:
+        mock = Mock()
+        mock.name = name
+        detectors.append(mock)
+
+    with pytest.raises(KeyError):
+        raise_for_minimum_exposure_times(exposure, detectors)
+
+
+@pytest.mark.parametrize("exposure", [1 / 22.0, 0.05, 0.5, 1.0, 10.0])
+def test_exposure_time_does_not_raise(exposure: float):
+    detectors = []
+    for name in ["saxs", "waxs", "oav", "i0", "it"]:
+        mock = Mock()
+        mock.name = name
+        detectors.append(mock)
+
+    raise_for_minimum_exposure_times(exposure, detectors)
 
 
 @pytest.mark.parametrize(

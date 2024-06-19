@@ -146,6 +146,10 @@ def stress_test_stopflow(
     # Exposure time excludes deadtime, so calculate the minimum possible exposure
     # time given the dead time of various detectors and a taret of 250Hz.
     duty_cycle = 1.0 / frame_rate
+    # Note: we pass 1.0 to get_deadtime because the detectors involved all have
+    # constant deadtimes that do not vary with the exposure time. If they did,
+    # this plan would not work because you cannot solve for minimum exposure
+    # time.
     deadtime = max(det.controller.get_deadtime(1.0) for det in detectors)
     exposure = duty_cycle - deadtime
 

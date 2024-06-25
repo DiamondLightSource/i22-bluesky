@@ -74,6 +74,7 @@ DEFAULT_PANDA = "panda1"
 #: and panda clocks
 DEADTIME_BUFFER = 20e-6
 
+
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
@@ -283,7 +284,10 @@ def prepare_seq_table_flyer_and_det(
         Iterator[MsgGenerator]: Bluesky messages
     """
 
-    deadtime = max(det.controller.get_deadtime(exposure) for det in detectors) + DEADTIME_BUFFER
+    deadtime = (
+        max(det.controller.get_deadtime(exposure) for det in detectors)
+        + DEADTIME_BUFFER
+    )
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,

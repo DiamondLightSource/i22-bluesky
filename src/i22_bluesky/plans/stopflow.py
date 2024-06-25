@@ -70,6 +70,9 @@ DEFAULT_BASELINE_MEASUREMENTS = [
 
 DEFAULT_PANDA = "panda1"
 
+#: Buffer added to deadtime to handle minor discrepencies between detector
+#: and panda clocks
+DEADTIME_BUFFER = 20e-6
 
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
@@ -136,23 +139,13 @@ def check_stopflow_experiment(
 
 
 def stress_test_stopflow(
-    frame_rate: float = 200.0,
+    exposure: float = 1.0 / 250.0,
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
+    detectors: List[StandardDetector] = inject(FAST_DETECTORS),
     baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
-    # Exposure time excludes deadtime, so calculate the minimum possible exposure
-    # time given the dead time of various detectors and a taret of 250Hz.
-    duty_cycle = 1.0 / frame_rate
-    # Note: we pass 1.0 to get_deadtime because the detectors involved all have
-    # constant deadtimes that do not vary with the exposure time. If they did,
-    # this plan would not work because you cannot solve for minimum exposure
-    # time.
-    deadtime = max(det.controller.get_deadtime(1.0) for det in detectors)
-    exposure = duty_cycle - deadtime
-
     yield from stopflow(
         exposure=exposure,
         post_stop_frames=post_stop_frames,
@@ -290,7 +283,7 @@ def prepare_seq_table_flyer_and_det(
         Iterator[MsgGenerator]: Bluesky messages
     """
 
-    deadtime = max(det.controller.get_deadtime(exposure) for det in detectors)
+    deadtime = max(det.controller.get_deadtime(exposure) for det in detectors) + DEADTIME_BUFFER
     trigger_info = TriggerInfo(
         num=(pre_stop_frames + post_stop_frames),
         trigger=DetectorTrigger.constant_gate,

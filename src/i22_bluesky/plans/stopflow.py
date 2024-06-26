@@ -79,7 +79,7 @@ DEADTIME_BUFFER = 20e-6
 def check_detectors_for_stopflow(
     num_frames: int = 1,
     devices: list[Readable] = inject(
-        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS + [DEFAULT_PANDA]
+        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS
     ),
 ) -> MsgGenerator:
     """

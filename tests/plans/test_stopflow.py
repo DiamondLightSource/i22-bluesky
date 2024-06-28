@@ -237,3 +237,39 @@ def test_stopflow_plan():
             baseline=set(),
         )
     )
+
+
+# DEFAULT OTHER PARAMS
+#             exposure=0.05,
+#             shutter_time=4e-3,
+#             deadtime=2.28e-3,
+#             period=0.0,
+
+
+def test_pre_1_post_0():
+    o = stopflow_seq_table(
+        pre_stop_frames=1,
+        post_stop_frames=0,
+        exposure=0.05,
+        shutter_time=4e-3,
+        deadtime=2.28e-3,
+        period=0.0,
+    )
+    repeats = o["repeats"]
+    np.testing.assert_equal(repeats, np.array([1, 1, 1]))
+
+
+def test_pre_0_post_1():
+    raise AssertionError("not implemented")
+
+
+def test_pre_1_post_1():
+    raise AssertionError("not implemented")
+
+
+def test_pre_0_post_0():
+    raise AssertionError("not implemented")
+
+
+def test_pre_200_post_0():
+    raise AssertionError("not implemented")

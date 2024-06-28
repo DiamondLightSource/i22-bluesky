@@ -16,6 +16,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/49-stress-test-stopflow-plan/"
   },
   {
+    "version": "75-fix-the-stopflow-seq-table-logic",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/75-fix-the-stopflow-seq-table-logic/"
+  },
+  {
     "version": "add-compliance-tests",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/add-compliance-tests/"
   },

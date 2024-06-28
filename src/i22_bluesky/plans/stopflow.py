@@ -325,15 +325,16 @@ def stopflow_seq_table(
             pre_stop_frames: Number of frames to take initially, before flow stops
             post_stop_frames: Number of frames to take after flow stops
             exposure: Exposure time of each frame (excluding deadtime)
-            shutter_time: Time period (seconds) to wait for the shutter to open fully before
-                    beginning acquisition
+            shutter_time: Time period (seconds) to wait for the shutter
+                    to open fully before beginning acquisition
             deadtime: Dead time to leave between frames, dependant on the
                     instruments involved
             period: Time period (seconds) to wait after arming the detector
                     before taking the first batch of frames
 
     Returns:
-            SeqTable: SeqTable that will result in a series of triggers for the measurement
+            SeqTable: SeqTable that will result in a series of triggers
+                    for the measurement
     """
 
     total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)

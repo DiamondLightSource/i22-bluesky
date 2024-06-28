@@ -78,9 +78,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: list[Readable] = inject(
-        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS
-    ),
+    devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -181,23 +179,23 @@ def stopflow(
     https://github.com/DiamondLightSource/i22-bluesky/issues/13
 
     Args:
-        exposure: exposure time of the detectors (excluding deadtime).
-        post_stop_frames: Number of frames to be collected after the flow
-            is stopped.
-        pre_stop_frames: Number of frames (if any) to be collected before
-            the flow is stopped.
-        shutter_time: Time period (seconds) to wait for the shutter to
-            open fully before beginning acquisition.
-        panda: PandA for controlling flyable motion.
-        detectors: A list of detectors that will be collected.
-        baseline: A list of devices to be read at the start and end of the plan
-            in a stream names baseline.
+            exposure: exposure time of the detectors (excluding deadtime).
+            post_stop_frames: Number of frames to be collected after the flow
+                    is stopped.
+            pre_stop_frames: Number of frames (if any) to be collected before
+                    the flow is stopped.
+            shutter_time: Time period (seconds) to wait for the shutter to
+                    open fully before beginning acquisition.
+            panda: PandA for controlling flyable motion.
+            detectors: A list of detectors that will be collected.
+            baseline: A list of devices to be read at the start and end of the plan
+                    in a stream names baseline.
 
     Returns:
-        MsgGenerator: Plan
+            MsgGenerator: Plan
 
     Yields:
-        Iterator[MsgGenerator]: Bluesky messages
+            Iterator[MsgGenerator]: Bluesky messages
     """
 
     # Check that all detectors supplied can actually go as
@@ -265,23 +263,23 @@ def prepare_seq_table_flyer_and_det(
     upload it to the panda. Arm all detectors.
 
     Args:
-        flyer: Flyer object that controls the panda
-        detectors: Detectors that are triggered by the panda
-        post_stop_frames: Number of frames to be collected after the flow
-            is stopped.
-        pre_stop_frames: Number of frames (if any) to be collected before
-            the flow is stopped.
-        exposure: Detector exposure time
-        shutter_time: Time period (seconds) to wait for the shutter to
-            open fully before beginning acquisition
-        period: Time period (seconds) to wait after arming the detector
-            before taking the first batch of frames
+            flyer: Flyer object that controls the panda
+            detectors: Detectors that are triggered by the panda
+            post_stop_frames: Number of frames to be collected after the flow
+                    is stopped.
+            pre_stop_frames: Number of frames (if any) to be collected before
+                    the flow is stopped.
+            exposure: Detector exposure time
+            shutter_time: Time period (seconds) to wait for the shutter to
+                    open fully before beginning acquisition
+            period: Time period (seconds) to wait after arming the detector
+                    before taking the first batch of frames
 
     Returns:
-        MsgGenerator: Plan
+            MsgGenerator: Plan
 
     Yields:
-        Iterator[MsgGenerator]: Bluesky messages
+            Iterator[MsgGenerator]: Bluesky messages
     """
 
     deadtime = (
@@ -325,18 +323,19 @@ def stopflow_seq_table(
     """Create a SeqTable based on the parameters of a stop flow measurement
 
     Args:
-        pre_stop_frames: Number of frames to take initially, before flow stops
-        post_stop_frames: Number of frames to take after flow stops
-        exposure: Exposure time of each frame (excluding deadtime)
-        shutter_time: Time period (seconds) to wait for the shutter to open fully before
-            beginning acquisition
-        deadtime: Dead time to leave between frames, dependant on the
-            instruments involved
-        period: Time period (seconds) to wait after arming the detector
-            before taking the first batch of frames
+            pre_stop_frames: Number of frames to take initially, before flow stops
+            post_stop_frames: Number of frames to take after flow stops
+            exposure: Exposure time of each frame (excluding deadtime)
+            shutter_time: Time period (seconds) to wait for the shutter
+                    to open fully before beginning acquisition
+            deadtime: Dead time to leave between frames, dependant on the
+                    instruments involved
+            period: Time period (seconds) to wait after arming the detector
+                    before taking the first batch of frames
 
     Returns:
-        SeqTable: SeqTable that will result in a series of triggers for the measurement
+            SeqTable: SeqTable that will result in a series of triggers
+                    for the measurement
     """
 
     total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
@@ -368,7 +367,7 @@ def stopflow_seq_table(
         rows.append(
             SeqTableRow(
                 trigger=SeqTrigger.BITA_1,
-                repeats=post_stop_frames,
+                repeats=1,
                 time1=in_micros(exposure),
                 outa1=True,
                 outb1=True,
@@ -376,6 +375,17 @@ def stopflow_seq_table(
                 outa2=True,
             )
         )
+        if post_stop_frames > 1:
+            rows.append(
+                SeqTableRow(
+                    repeats=post_stop_frames - 1,
+                    time1=in_micros(exposure),
+                    outa1=True,
+                    outb1=True,
+                    time2=in_micros(deadtime),
+                    outa2=True,
+                )
+            )
     # Add the shutter close
     rows.append(SeqTableRow(time2=in_micros(shutter_time)))
     return seq_table_from_rows(*rows)

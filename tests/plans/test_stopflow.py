@@ -32,11 +32,47 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
             period=0.0,
         ),
         {
-            "repeats": np.array([1, 100, 200, 1], dtype=np.uint16),
+            "repeats": np.array([1, 100, 1, 199, 1], dtype=np.uint16),
             "trigger": [
                 SeqTrigger.IMMEDIATE,
                 SeqTrigger.IMMEDIATE,
                 SeqTrigger.BITA_1,
+                SeqTrigger.IMMEDIATE,
+                SeqTrigger.IMMEDIATE,
+            ],
+            "position": np.array([0, 0, 0, 0, 0], dtype=np.int32),
+            "time1": np.array([0, 50000, 50000, 50000, 0], dtype=np.uint32),
+            "outa1": np.array([False, True, True, True, False]),
+            "outb1": np.array([False, True, True, True, False]),
+            "outc1": np.array([False, False, False, False, False]),
+            "outd1": np.array([False, False, False, False, False]),
+            "oute1": np.array([False, False, False, False, False]),
+            "outf1": np.array([False, False, False, False, False]),
+            "time2": np.array([4000, 2280, 2280, 2280, 4000], dtype=np.uint32),
+            "outa2": np.array([True, True, True, True, False]),
+            "outb2": np.array([False, False, False, False, False]),
+            "outc2": np.array([False, False, False, False, False]),
+            "outd2": np.array([False, False, False, False, False]),
+            "oute2": np.array([False, False, False, False, False]),
+            "outf2": np.array([False, False, False, False, False]),
+        },
+    ),
+    # Same but taking no frames at the start
+    (
+        stopflow_seq_table(
+            pre_stop_frames=0,
+            post_stop_frames=200,
+            exposure=0.05,
+            shutter_time=4e-3,
+            deadtime=2.28e-3,
+            period=0.0,
+        ),
+        {
+            "repeats": np.array([1, 1, 199, 1], dtype=np.uint16),
+            "trigger": [
+                SeqTrigger.IMMEDIATE,
+                SeqTrigger.BITA_1,
+                SeqTrigger.IMMEDIATE,
                 SeqTrigger.IMMEDIATE,
             ],
             "position": np.array([0, 0, 0, 0], dtype=np.int32),
@@ -54,40 +90,6 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
             "outd2": np.array([False, False, False, False]),
             "oute2": np.array([False, False, False, False]),
             "outf2": np.array([False, False, False, False]),
-        },
-    ),
-    # Same but taking no frames at the start
-    (
-        stopflow_seq_table(
-            pre_stop_frames=0,
-            post_stop_frames=200,
-            exposure=0.05,
-            shutter_time=4e-3,
-            deadtime=2.28e-3,
-            period=0.0,
-        ),
-        {
-            "repeats": np.array([1, 200, 1], dtype=np.uint16),
-            "trigger": [
-                SeqTrigger.IMMEDIATE,
-                SeqTrigger.BITA_1,
-                SeqTrigger.IMMEDIATE,
-            ],
-            "position": np.array([0, 0, 0], dtype=np.int32),
-            "time1": np.array([0, 50000, 0], dtype=np.uint32),
-            "outa1": np.array([False, True, False]),
-            "outb1": np.array([False, True, False]),
-            "outc1": np.array([False, False, False]),
-            "outd1": np.array([False, False, False]),
-            "oute1": np.array([False, False, False]),
-            "outf1": np.array([False, False, False]),
-            "time2": np.array([4000, 2280, 4000], dtype=np.uint32),
-            "outa2": np.array([True, True, False]),
-            "outb2": np.array([False, False, False]),
-            "outc2": np.array([False, False, False]),
-            "outd2": np.array([False, False, False]),
-            "oute2": np.array([False, False, False]),
-            "outf2": np.array([False, False, False]),
         },
     ),
     (
@@ -234,3 +236,39 @@ def test_stopflow_plan():
             baseline=[],
         )
     )
+
+
+# DEFAULT OTHER PARAMS
+#             exposure=0.05,
+#             shutter_time=4e-3,
+#             deadtime=2.28e-3,
+#             period=0.0,
+
+
+def test_pre_1_post_0():
+    o = stopflow_seq_table(
+        pre_stop_frames=1,
+        post_stop_frames=0,
+        exposure=0.05,
+        shutter_time=4e-3,
+        deadtime=2.28e-3,
+        period=0.0,
+    )
+    repeats = o["repeats"]
+    np.testing.assert_equal(repeats, np.array([1, 1, 1]))
+
+
+def test_pre_0_post_1():
+    raise AssertionError("not implemented")
+
+
+def test_pre_1_post_1():
+    raise AssertionError("not implemented")
+
+
+def test_pre_0_post_0():
+    raise AssertionError("not implemented")
+
+
+def test_pre_200_post_0():
+    raise AssertionError("not implemented")

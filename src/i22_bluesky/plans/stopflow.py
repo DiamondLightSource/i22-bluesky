@@ -365,7 +365,7 @@ def stopflow_seq_table(
         rows.append(
             SeqTableRow(
                 trigger=SeqTrigger.BITA_1,
-                repeats=post_stop_frames,
+                repeats=1,
                 time1=in_micros(exposure),
                 outa1=True,
                 outb1=True,
@@ -373,6 +373,18 @@ def stopflow_seq_table(
                 outa2=True,
             )
         )
+        if post_stop_frames > 1:
+            rows.append(
+                SeqTableRow(
+                    trigger=SeqTrigger.BITA_1,
+                    repeats=post_stop_frames-1,
+                    time1=in_micros(exposure),
+                    outa1=True,
+                    outb1=True,
+                    time2=in_micros(deadtime),
+                    outa2=True,
+                )
+            )
     # Add the shutter close
     rows.append(SeqTableRow(time2=in_micros(shutter_time)))
     return seq_table_from_rows(*rows)

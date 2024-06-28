@@ -376,7 +376,7 @@ def stopflow_seq_table(
         if post_stop_frames > 1:
             rows.append(
                 SeqTableRow(
-                    repeats=post_stop_frames-1,
+                    repeats=post_stop_frames - 1,
                     time1=in_micros(exposure),
                     outa1=True,
                     outb1=True,

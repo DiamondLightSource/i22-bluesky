@@ -43,7 +43,7 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
             "position": np.array([0, 0, 0, 0], dtype=np.int32),
             "time1": np.array([0, 50000, 50000, 0], dtype=np.uint32),
             "outa1": np.array([False, True, False, False]),
-            "outb1": np.array([False, True, False, False]),
+            "outb1": np.array([False, True, True, False]),
             "outc1": np.array([False, False, False, False]),
             "outd1": np.array([False, False, False, False]),
             "oute1": np.array([False, False, False, False]),

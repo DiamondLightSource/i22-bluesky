@@ -191,10 +191,10 @@ def stopflow(
             in a stream names baseline.
 
     Returns:
-        MsgGenerator: Plan
+            MsgGenerator: Plan
 
     Yields:
-        Iterator[MsgGenerator]: Bluesky messages
+            Iterator[MsgGenerator]: Bluesky messages
     """
 
     # Check that all detectors supplied can actually go as
@@ -262,23 +262,23 @@ def prepare_seq_table_flyer_and_det(
     upload it to the panda. Arm all detectors.
 
     Args:
-        flyer: Flyer object that controls the panda
-        detectors: Detectors that are triggered by the panda
-        post_stop_frames: Number of frames to be collected after the flow
-            is stopped.
-        pre_stop_frames: Number of frames (if any) to be collected before
-            the flow is stopped.
-        exposure: Detector exposure time
-        shutter_time: Time period (seconds) to wait for the shutter to
-            open fully before beginning acquisition
-        period: Time period (seconds) to wait after arming the detector
-            before taking the first batch of frames
+            flyer: Flyer object that controls the panda
+            detectors: Detectors that are triggered by the panda
+            post_stop_frames: Number of frames to be collected after the flow
+                    is stopped.
+            pre_stop_frames: Number of frames (if any) to be collected before
+                    the flow is stopped.
+            exposure: Detector exposure time
+            shutter_time: Time period (seconds) to wait for the shutter to
+                    open fully before beginning acquisition
+            period: Time period (seconds) to wait after arming the detector
+                    before taking the first batch of frames
 
     Returns:
-        MsgGenerator: Plan
+            MsgGenerator: Plan
 
     Yields:
-        Iterator[MsgGenerator]: Bluesky messages
+            Iterator[MsgGenerator]: Bluesky messages
     """
 
     deadtime = (
@@ -322,18 +322,18 @@ def stopflow_seq_table(
     """Create a SeqTable based on the parameters of a stop flow measurement
 
     Args:
-        pre_stop_frames: Number of frames to take initially, before flow stops
-        post_stop_frames: Number of frames to take after flow stops
-        exposure: Exposure time of each frame (excluding deadtime)
-        shutter_time: Time period (seconds) to wait for the shutter to open fully before
-            beginning acquisition
-        deadtime: Dead time to leave between frames, dependant on the
-            instruments involved
-        period: Time period (seconds) to wait after arming the detector
-            before taking the first batch of frames
+            pre_stop_frames: Number of frames to take initially, before flow stops
+            post_stop_frames: Number of frames to take after flow stops
+            exposure: Exposure time of each frame (excluding deadtime)
+            shutter_time: Time period (seconds) to wait for the shutter to open fully before
+                    beginning acquisition
+            deadtime: Dead time to leave between frames, dependant on the
+                    instruments involved
+            period: Time period (seconds) to wait after arming the detector
+                    before taking the first batch of frames
 
     Returns:
-        SeqTable: SeqTable that will result in a series of triggers for the measurement
+            SeqTable: SeqTable that will result in a series of triggers for the measurement
     """
 
     total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)

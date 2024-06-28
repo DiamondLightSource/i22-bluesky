@@ -152,7 +152,7 @@ def test_exposure_time_does_not_raise(exposure: float):
 
 
 @pytest.mark.parametrize(
-t   "generated_seq_table,expected_seq_table",
+    "generated_seq_table,expected_seq_table",
     SEQ_TABLE_TEST_CASES,
 )
 def test_stopflow_seq_table(

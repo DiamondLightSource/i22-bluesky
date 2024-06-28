@@ -77,7 +77,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: set[Readable] = DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS,
+    devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the

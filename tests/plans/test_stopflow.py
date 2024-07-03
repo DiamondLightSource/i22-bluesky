@@ -1,5 +1,4 @@
 import asyncio
-from typing import Set
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -130,7 +129,7 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
 
 @pytest.mark.parametrize("exposure", [0.04, 0.01, 0.001])
 def test_exposure_time_raises(exposure: float):
-    detectors: Set[StandardDetector] = set()
+    detectors: set[StandardDetector] = set()
     for name in {"saxs", "waxs", "oav", "i0", "it"}:
         mock = Mock()
         mock.name = name
@@ -142,7 +141,7 @@ def test_exposure_time_raises(exposure: float):
 
 @pytest.mark.parametrize("exposure", [1 / 22.0, 0.05, 0.5, 1.0, 10.0])
 def test_exposure_time_does_not_raise(exposure: float):
-    detectors: Set[StandardDetector] = set()
+    detectors: set[StandardDetector] = set()
     for name in {"saxs", "waxs", "oav", "i0", "it"}:
         mock = Mock()
         mock.name = name
@@ -187,11 +186,11 @@ def test_stopflow_plan():
 
     RE = RunEngine()
 
-    pilatuses: Set[StandardDetector] = {
+    pilatuses: set[StandardDetector] = {
         saxs(fake_with_ophyd_sim=True),
         waxs(fake_with_ophyd_sim=True),
     }
-    detectors: Set[PilatusDetector | TetrammDetector] = pilatuses + {
+    detectors: set[PilatusDetector | TetrammDetector] = pilatuses + {
         i0(fake_with_ophyd_sim=True),
         it(fake_with_ophyd_sim=True),
     }

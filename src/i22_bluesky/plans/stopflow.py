@@ -17,7 +17,7 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
@@ -78,7 +78,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: Set[Readable] = inject(DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS),
+    devices: set[Readable] = inject(DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -97,8 +97,8 @@ def check_detectors_for_stopflow(
 
 def check_stopflow_assembly(
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: Set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: Set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Simplified version of the stopflow plan that should catch most
@@ -119,8 +119,8 @@ def check_stopflow_assembly(
 
 def check_stopflow_experiment(
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: Set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: Set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Full test of stopflow experiment functionality with sensible values
@@ -142,8 +142,8 @@ def stress_test_stopflow(
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: Set[StandardDetector] = inject(FAST_DETECTORS),
-    baseline: Set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(FAST_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     yield from stopflow(
         exposure=exposure,
@@ -170,8 +170,8 @@ def stopflow(
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: Set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: Set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """
@@ -204,7 +204,7 @@ def stopflow(
 
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    devices = {flyer} | detectors | {panda} | baseline
+    devices = {flyer, panda} | detectors | baseline
 
     # Collect metadata
     plan_args = {
@@ -212,9 +212,9 @@ def stopflow(
         "post_stop_frames": post_stop_frames,
         "exposure": exposure,
         "shutter_time": shutter_time,
-        "panda": repr(panda),
-        "detectors": {repr(device) for device in detectors},
-        "baseline": {repr(device) for device in baseline},
+        "panda": panda.name + ":" + repr(panda),
+        "detectors": {device.name + ":" + repr(device) for device in detectors},
+        "baseline": {device.name + ":" + repr(device) for device in baseline},
     }
     # Add panda to detectors so it captures and writes data.
     # It needs to be in metadata but not metadata planargs.
@@ -251,7 +251,7 @@ def stopflow(
 
 def prepare_seq_table_flyer_and_det(
     flyer: HardwareTriggeredFlyable[SeqTableInfo],
-    detectors: Set[StandardDetector],
+    detectors: set[StandardDetector],
     pre_stop_frames: int,
     post_stop_frames: int,
     exposure: float,
@@ -381,7 +381,7 @@ def stopflow_seq_table(
 
 def raise_for_minimum_exposure_times(
     exposure: float,
-    detectors: Set[StandardDetector],
+    detectors: set[StandardDetector],
 ) -> None:
     minimum_exposure_times = {
         "saxs": 1.0 / 250.0,

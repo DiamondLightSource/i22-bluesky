@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing import Set
 
 from dls_bluesky_core.core import MsgGenerator
 from ophyd_async.core import (
@@ -18,19 +17,19 @@ ROOT_SAVE_DIR = get_project_root() / "pvs"
 
 
 def save(
-    devices: Set[Device], config_id: str, ignore_signals: Set[str] | None = None
+    devices: set[Device], config_id: str, ignore_signals: set[str] | None = None
 ) -> MsgGenerator:
     for device in devices:
         yield from save_device(device, config_id, ignore_signals)
 
 
-def load(devices: Set[Device], config_id: str) -> MsgGenerator:
+def load(devices: set[Device], config_id: str) -> MsgGenerator:
     for device in devices:
         yield from load_device(device, config_id)
 
 
 def save_device(
-    device: Device, config_id: str, ignore_signals: Set[str] | None = None
+    device: Device, config_id: str, ignore_signals: set[str] | None = None
 ) -> MsgGenerator:
     signals = walk_rw_signals(device)
     values = yield from get_signal_values(signals, ignore=ignore_signals or {})

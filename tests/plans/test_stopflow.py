@@ -1,4 +1,5 @@
 import asyncio
+from typing import Set
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -10,6 +11,7 @@ from ophyd_async.core import (
     callback_on_mock_put,
     set_mock_value,
 )
+from ophyd_async.core.detector import StandardDetector
 from ophyd_async.epics.areadetector.pilatus import PilatusDetector
 from ophyd_async.panda import SeqTable, SeqTrigger
 from ophyd_async.panda._table import DatasetTable, PandaHdf5DatasetType
@@ -128,11 +130,11 @@ SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
 
 @pytest.mark.parametrize("exposure", [0.04, 0.01, 0.001])
 def test_exposure_time_raises(exposure: float):
-    detectors = []
-    for name in ["saxs", "waxs", "oav", "i0", "it"]:
+    detectors: Set[StandardDetector] = set()
+    for name in {"saxs", "waxs", "oav", "i0", "it"}:
         mock = Mock()
         mock.name = name
-        detectors.append(mock)
+        detectors.update({mock})
 
     with pytest.raises(KeyError):
         raise_for_minimum_exposure_times(exposure, detectors)
@@ -140,11 +142,11 @@ def test_exposure_time_raises(exposure: float):
 
 @pytest.mark.parametrize("exposure", [1 / 22.0, 0.05, 0.5, 1.0, 10.0])
 def test_exposure_time_does_not_raise(exposure: float):
-    detectors = []
-    for name in ["saxs", "waxs", "oav", "i0", "it"]:
+    detectors: Set[StandardDetector] = set()
+    for name in {"saxs", "waxs", "oav", "i0", "it"}:
         mock = Mock()
         mock.name = name
-        detectors.append(mock)
+        detectors.update({mock})
 
     raise_for_minimum_exposure_times(exposure, detectors)
 
@@ -164,15 +166,15 @@ def test_stopflow_seq_table(
 def test_check_detectors_for_stopflow_excludes_tetramms():
     RE = RunEngine()
 
-    expected_detectors = [
+    expected_detectors = {
         saxs(fake_with_ophyd_sim=True),
         waxs(fake_with_ophyd_sim=True),
-    ]
+    }
 
-    detectors = expected_detectors + [
+    detectors = expected_detectors + {
         i0(fake_with_ophyd_sim=True),
         it(fake_with_ophyd_sim=True),
-    ]
+    }
 
     with patch("i22_bluesky.plans.stopflow.bp.count") as mock_count:
         RE(check_detectors_for_stopflow(devices=detectors))
@@ -185,14 +187,14 @@ def test_stopflow_plan():
 
     RE = RunEngine()
 
-    pilatuses = [
+    pilatuses: Set[StandardDetector] = {
         saxs(fake_with_ophyd_sim=True),
         waxs(fake_with_ophyd_sim=True),
-    ]
-    detectors: list[PilatusDetector | TetrammDetector] = pilatuses + [
+    }
+    detectors: Set[PilatusDetector | TetrammDetector] = pilatuses + {
         i0(fake_with_ophyd_sim=True),
         it(fake_with_ophyd_sim=True),
-    ]
+    }
     panda = panda1(fake_with_ophyd_sim=True)
     set_mock_value(
         panda.data.datasets,
@@ -231,6 +233,6 @@ def test_stopflow_plan():
             shutter_time=4e-3,
             panda=panda,
             detectors=detectors,
-            baseline=[],
+            baseline=set(),
         )
     )

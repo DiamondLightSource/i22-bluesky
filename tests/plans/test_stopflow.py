@@ -369,4 +369,3 @@ def test_stopflow_plan():
             baseline=set(),
         )
     )
-

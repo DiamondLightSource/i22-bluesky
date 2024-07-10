@@ -1,10 +1,10 @@
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
-from dls_bluesky_core.core import MsgGenerator, inject
+from dodal.common import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
@@ -19,6 +19,13 @@ from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_setti
 # TODO: Define generic plan that follows N temperature sections?
 XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
+SAXS = inject("saxs")
+WAXS = inject("waxs")
+I0 = inject("i0")
+IT = inject("it")
+LINKAM = inject("linkam")
+DEFAULT_PANDA = inject("panda1")
+
 
 def linkam_plan(
     start_temp: float,
@@ -30,13 +37,13 @@ def linkam_plan(
     heat_rate: float,
     num_frames: int,
     exposure: float,
-    metadata: Optional[Dict[str, Any]] = None,
-    saxs: StandardDetector = inject("saxs"),
-    waxs: StandardDetector = inject("waxs"),
-    tetramm1: StandardDetector = inject("i0"),
-    tetramm2: StandardDetector = inject("it"),
-    linkam: Linkam3 = inject("linkam"),
-    panda: HDFPanda = inject("panda-01"),
+    metadata: dict[str, Any] | None = None,
+    saxs: StandardDetector = SAXS,
+    waxs: StandardDetector = WAXS,
+    tetramm1: StandardDetector = I0,
+    tetramm2: StandardDetector = IT,
+    linkam: Linkam3 = LINKAM,
+    panda: HDFPanda = DEFAULT_PANDA,
 ) -> MsgGenerator:
     """Cool in steps, then heat constantly, taking collections of num_frames each time::
 

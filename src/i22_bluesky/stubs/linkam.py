@@ -1,8 +1,7 @@
-from typing import Set
-
 import bluesky.plan_stubs as bps
 import numpy as np
-from dls_bluesky_core.core import group_uuid, step_to_num
+from dodal.common.coordination import group_uuid
+from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import StandardDetector
 from ophyd_async.core.flyer import HardwareTriggeredFlyable
@@ -15,7 +14,7 @@ from ophyd_async.plan_stubs import (
 def scan_linkam(
     linkam: Linkam3,
     flyer: HardwareTriggeredFlyable,
-    detectors: Set[StandardDetector],
+    detectors: set[StandardDetector],
     start: float,
     stop: float,
     step: float,

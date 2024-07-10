@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from dls_bluesky_core.core import MsgGenerator
+from dodal.common import MsgGenerator
 from ophyd_async.core import (
     Device,
     get_signal_values,

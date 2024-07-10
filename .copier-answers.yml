@@ -1,0 +1,16 @@
+# Changes here will be overwritten by Copier
+_commit: 2.1.0
+_src_path: gh:DiamondLightSource/python-copier-template
+author_email: stanislaw.malinowski@diamond.ac.uk
+author_name: Malinowski, Stanisław (DLSLtd,RAL,LSCI)
+component_owner: group:default/data-acquisition
+description: Plans and behaviours specific to the i22 beamline at DiamondLightSource.
+distribution_name: i22-bluesky
+docker: false
+docs_type: README
+git_platform: github.com
+github_org: DiamondLightSource
+package_name: i22_bluesky
+pypi: true
+repo_name: i22-bluesky
+type_checker: mypy

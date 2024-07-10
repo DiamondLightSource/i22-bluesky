@@ -17,14 +17,13 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from dls_bluesky_core.core import MsgGenerator
-from dodal.common import inject
+from dodal.common import MsgGenerator, inject
 from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
@@ -45,30 +44,30 @@ from ophyd_async.plan_stubs import (
 from i22_bluesky.stubs import load, save
 
 FAST_DETECTORS = {
-    "saxs",
-    "waxs",
-    "i0",
-    "it",
+    inject("saxs"),
+    inject("waxs"),
+    inject("i0"),
+    inject("it"),
 }
 
-DEFAULT_DETECTORS = FAST_DETECTORS | {"oav"}
+DEFAULT_DETECTORS = FAST_DETECTORS | {inject("oav")}
 
 DEFAULT_BASELINE_MEASUREMENTS = {
-    "fswitch",
-    "slits_1",
-    "slits_2",
-    "slits_3",
-    # "slits_4", Until we make this device
-    "slits_5",
-    "slits_6",
-    "hfm",
-    "vfm",
-    "undulator",
-    "dcm",
-    "synchrotron",
+    inject("fswitch"),
+    inject("slits_1"),
+    inject("slits_2"),
+    inject("slits_3"),
+    # inject("slits_4"), Until we make this device
+    inject("slits_5"),
+    inject("slits_6"),
+    inject("hfm"),
+    inject("vfm"),
+    inject("undulator"),
+    inject("dcm"),
+    inject("synchrotron"),
 }
 
-DEFAULT_PANDA = "panda1"
+DEFAULT_PANDA = inject("panda1")
 
 #: Buffer added to deadtime to handle minor discrepencies between detector
 #: and panda clocks
@@ -78,7 +77,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: set[Readable] = inject(DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS),
+    devices: set[Readable] = DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -96,9 +95,9 @@ def check_detectors_for_stopflow(
 
 
 def check_stopflow_assembly(
-    panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Simplified version of the stopflow plan that should catch most
@@ -118,9 +117,9 @@ def check_stopflow_assembly(
 
 
 def check_stopflow_experiment(
-    panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Full test of stopflow experiment functionality with sensible values
@@ -141,9 +140,9 @@ def stress_test_stopflow(
     exposure: float = 1.0 / 250.0,
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
-    panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: set[StandardDetector] = inject(FAST_DETECTORS),
-    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = FAST_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     yield from stopflow(
         exposure=exposure,
@@ -156,7 +155,7 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     yield from save(
         {panda},
         "stopflow",
@@ -169,10 +168,10 @@ def stopflow(
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
-    metadata: Optional[Dict[str, Any]] = None,
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
+    metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """
     Perform a stop flow measurement, see detailed description in

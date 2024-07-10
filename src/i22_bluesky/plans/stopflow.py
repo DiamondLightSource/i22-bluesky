@@ -17,7 +17,7 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
@@ -172,7 +172,7 @@ def stopflow(
     panda: HDFPanda = inject(DEFAULT_PANDA),
     detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
     baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """
     Perform a stop flow measurement, see detailed description in

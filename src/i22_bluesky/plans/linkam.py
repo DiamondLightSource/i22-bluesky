@@ -1,6 +1,6 @@
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import bluesky.preprocessors as bpp
 from bluesky.preprocessors import finalize_decorator
@@ -30,7 +30,7 @@ def linkam_plan(
     heat_rate: float,
     num_frames: int,
     exposure: float,
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
     saxs: StandardDetector = inject("saxs"),
     waxs: StandardDetector = inject("waxs"),
     tetramm1: StandardDetector = inject("i0"),

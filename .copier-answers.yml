@@ -1,9 +1,9 @@
 # Changes here will be overwritten by Copier
 _commit: 2.1.0
 _src_path: gh:DiamondLightSource/python-copier-template
-author_email: joseph.ware@diamond.ac.uk
-author_name: Ware, Joseph (DLSLtd,RAL,LSCI)
-component_owner: user/qwe67581
+author_email: stanislaw.malinowski@diamond.ac.uk
+author_name: Malinowski, Stanisław (DLSLtd,RAL,LSCI)
+component_owner: user/xma12127
 description: Plans and behaviours specific to the i22 beamline at DiamondLightSource.
 distribution_name: i22-bluesky
 docker: false

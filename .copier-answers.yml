@@ -3,7 +3,7 @@ _commit: 2.1.0
 _src_path: gh:DiamondLightSource/python-copier-template
 author_email: stanislaw.malinowski@diamond.ac.uk
 author_name: Malinowski, Stanisław (DLSLtd,RAL,LSCI)
-component_owner: user/xma12127
+component_owner: group:default/data-acquisition
 description: Plans and behaviours specific to the i22 beamline at DiamondLightSource.
 distribution_name: i22-bluesky
 docker: false

@@ -43,7 +43,9 @@ GitHub = "https://github.com/DiamondLightSource/i22-bluesky"
 [[project.authors]] # Further authors may be added by duplicating this section
 email = "stanislaw.malinowski@diamond.ac.uk"
 name = "Malinowski, Stanisław (DLSLtd,RAL,LSCI)"
-
+[[project.authors]]
+email = "joseph.ware@diamond.ac.uk"
+name = "Ware, Joseph (DLSLtd,RAL,LSCI)"
 
 [tool.setuptools_scm]
 write_to = "src/i22_bluesky/_version.py"

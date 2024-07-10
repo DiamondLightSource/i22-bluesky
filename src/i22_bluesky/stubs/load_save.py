@@ -17,22 +17,22 @@ ROOT_SAVE_DIR = get_project_root() / "pvs"
 
 
 def save(
-    devices: list[Device], config_id: str, ignore_signals: list[str] | None = None
+    devices: set[Device], config_id: str, ignore_signals: set[str] | None = None
 ) -> MsgGenerator:
     for device in devices:
         yield from save_device(device, config_id, ignore_signals)
 
 
-def load(devices: list[Device], config_id: str) -> MsgGenerator:
+def load(devices: set[Device], config_id: str) -> MsgGenerator:
     for device in devices:
         yield from load_device(device, config_id)
 
 
 def save_device(
-    device: Device, config_id: str, ignore_signals: list[str] | None = None
+    device: Device, config_id: str, ignore_signals: set[str] | None = None
 ) -> MsgGenerator:
     signals = walk_rw_signals(device)
-    values = yield from get_signal_values(signals, ignore=ignore_signals or [])
+    values = yield from get_signal_values(signals, ignore=ignore_signals or {})
 
     # Pretend we have a database, which would be sensible, but it's actually files
     device_directory = _device_directory(device, config_id)

@@ -74,7 +74,7 @@ def linkam_plan(
         Iterator[MsgGenerator]: Bluesky messages
     """
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    detectors = [saxs, waxs, tetramm1, tetramm2]
+    detectors = {saxs, waxs, tetramm1, tetramm2}
 
     plan_args = {
         "start_temp": start_temp,
@@ -94,20 +94,20 @@ def linkam_plan(
         "panda": repr(panda),
     }
     _md = {
-        "detectors": [device.name for device in detectors],
-        "motors": [linkam.name],
+        "detectors": {device.name for device in detectors},
+        "motors": {linkam.name},
         "plan_args": plan_args,
         # TODO: Can we pass dimensional hint? motors? shape?
         "hints": {},
     }
     _md.update(metadata or {})
 
-    yield from load(detectors + [panda, linkam], "linkam_plan")
+    yield from load(detectors | {panda, linkam}, "linkam_plan")
 
     free_first_tetramm = partial(TetrammDetector, tetramm1)
     free_second_tetramm = partial(TetrammDetector, tetramm2)
 
-    devices = [flyer] + detectors
+    devices = {flyer} | detectors
 
     @finalize_decorator(free_first_tetramm)
     @finalize_decorator(free_second_tetramm)

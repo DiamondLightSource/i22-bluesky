@@ -17,7 +17,7 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
@@ -44,16 +44,16 @@ from ophyd_async.plan_stubs import (
 
 from i22_bluesky.stubs import load, save
 
-FAST_DETECTORS = [
+FAST_DETECTORS = {
     "saxs",
     "waxs",
     "i0",
     "it",
-]
+}
 
-DEFAULT_DETECTORS = FAST_DETECTORS + ["oav"]
+DEFAULT_DETECTORS = FAST_DETECTORS | {"oav"}
 
-DEFAULT_BASELINE_MEASUREMENTS = [
+DEFAULT_BASELINE_MEASUREMENTS = {
     "fswitch",
     "slits_1",
     "slits_2",
@@ -66,7 +66,7 @@ DEFAULT_BASELINE_MEASUREMENTS = [
     "undulator",
     "dcm",
     "synchrotron",
-]
+}
 
 DEFAULT_PANDA = "panda1"
 
@@ -78,9 +78,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: list[Readable] = inject(
-        DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS
-    ),
+    devices: set[Readable] = inject(DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -88,9 +86,9 @@ def check_detectors_for_stopflow(
     """
 
     # Tetramms do not support software triggering
-    software_triggerable_devices = [
+    software_triggerable_devices = {
         device for device in devices if not isinstance(device, TetrammDetector)
-    ]
+    }
     yield from bp.count(
         software_triggerable_devices,
         num=num_frames,
@@ -99,8 +97,8 @@ def check_detectors_for_stopflow(
 
 def check_stopflow_assembly(
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Simplified version of the stopflow plan that should catch most
@@ -121,8 +119,8 @@ def check_stopflow_assembly(
 
 def check_stopflow_experiment(
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     """
     Full test of stopflow experiment functionality with sensible values
@@ -144,8 +142,8 @@ def stress_test_stopflow(
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: List[StandardDetector] = inject(FAST_DETECTORS),
-    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(FAST_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
 ) -> MsgGenerator:
     yield from stopflow(
         exposure=exposure,
@@ -160,9 +158,9 @@ def stress_test_stopflow(
 
 def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
     yield from save(
-        [panda],
+        {panda},
         "stopflow",
-        ignore_signals=["pcap.capture", "data.capture", "data.datasets"],
+        ignore_signals={"pcap.capture", "data.capture", "data.datasets"},
     )
 
 
@@ -172,8 +170,8 @@ def stopflow(
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
     panda: HDFPanda = inject(DEFAULT_PANDA),
-    detectors: List[StandardDetector] = inject(DEFAULT_DETECTORS),
-    baseline: List[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
+    detectors: set[StandardDetector] = inject(DEFAULT_DETECTORS),
+    baseline: set[Readable] = inject(DEFAULT_BASELINE_MEASUREMENTS),
     metadata: Optional[Dict[str, Any]] = None,
 ) -> MsgGenerator:
     """
@@ -189,8 +187,8 @@ def stopflow(
         shutter_time: Time period (seconds) to wait for the shutter to
             open fully before beginning acquisition.
         panda: PandA for controlling flyable motion.
-        detectors: A list of detectors that will be collected.
-        baseline: A list of devices to be read at the start and end of the plan
+        detectors: A set of detectors that will be collected.
+        baseline: A set of devices to be read at the start and end of the plan
             in a stream names baseline.
 
     Returns:
@@ -206,7 +204,7 @@ def stopflow(
 
     stream_name = "main"
     flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    devices = [flyer] + detectors + [panda] + baseline
+    devices = {flyer, panda} | detectors | baseline
 
     # Collect metadata
     plan_args = {
@@ -214,26 +212,26 @@ def stopflow(
         "post_stop_frames": post_stop_frames,
         "exposure": exposure,
         "shutter_time": shutter_time,
-        "panda": repr(panda),
-        "detectors": [repr(device) for device in detectors],
-        "baseline": [repr(device) for device in baseline],
+        "panda": panda.name + ":" + repr(panda),
+        "detectors": {device.name + ":" + repr(device) for device in detectors},
+        "baseline": {device.name + ":" + repr(device) for device in baseline},
     }
     # Add panda to detectors so it captures and writes data.
     # It needs to be in metadata but not metadata planargs.
     _md = {
-        "detectors": [device.name for device in detectors],
+        "detectors": {device.name for device in detectors},
         "plan_args": plan_args,
         "hints": {},
     }
     _md.update(metadata or {})
-    detectors = detectors + [panda]
+    detectors = detectors | {panda}
 
     @bpp.baseline_decorator(baseline)
     @attach_data_session_metadata_decorator()
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load([panda], "stopflow")
+        yield from load({panda}, "stopflow")
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,
@@ -253,7 +251,7 @@ def stopflow(
 
 def prepare_seq_table_flyer_and_det(
     flyer: HardwareTriggeredFlyable[SeqTableInfo],
-    detectors: List[StandardDetector],
+    detectors: set[StandardDetector],
     pre_stop_frames: int,
     post_stop_frames: int,
     exposure: float,
@@ -383,7 +381,7 @@ def stopflow_seq_table(
 
 def raise_for_minimum_exposure_times(
     exposure: float,
-    detectors: list[StandardDetector],
+    detectors: set[StandardDetector],
 ) -> None:
     minimum_exposure_times = {
         "saxs": 1.0 / 250.0,
@@ -392,11 +390,11 @@ def raise_for_minimum_exposure_times(
         "i0": 1.0 / 2e4,
         "it": 1.0 / 2e4,
     }
-    detectors_below_limit = [
+    detectors_below_limit = {
         detector
         for detector in detectors
         if exposure < minimum_exposure_times.get(detector.name, 0.0)
-    ]
+    }
     if len(detectors_below_limit) > 0:
         raise KeyError(
             f"The exposure time requested was {exposure}, but "

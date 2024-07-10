@@ -1,4 +1,4 @@
-from typing import List
+from typing import Set
 
 import bluesky.plan_stubs as bps
 import numpy as np
@@ -15,7 +15,7 @@ from ophyd_async.plan_stubs import (
 def scan_linkam(
     linkam: Linkam3,
     flyer: HardwareTriggeredFlyable,
-    detectors: List[StandardDetector],
+    detectors: Set[StandardDetector],
     start: float,
     stop: float,
     step: float,

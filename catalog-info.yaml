@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: i22-bluesky
+  title: i22-bluesky
+  description: Plans and behaviours specific to the i22 beamline at DiamondLightSource.
+spec:
+  type: documentation
+  lifecycle: experimental
+  owner: user/qwe67581

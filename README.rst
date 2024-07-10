@@ -1,5 +1,5 @@
-i22-bluesky
-===========================
+i22_bluesky
+=============================================================================
 
 |code_ci| |docs_ci| |coverage| |pypi_version| |license|
 
@@ -10,11 +10,10 @@ may occur.
 
 The 'plans' package contains functions that describe a full operation which performs an experiment and captures data.
 The 'stubs' package contains modular partial instructions that may act as a building block for constructing plans.
-
 ============== ==============================================================
 PyPI           ``pip install i22-bluesky``
 Source code    https://github.com/DiamondLightSource/i22-bluesky
-Documentation  https://DiamondLightSource.github.io/i22-bluesky
+
 Releases       https://github.com/DiamondLightSource/i22-bluesky/releases
 ============== ==============================================================
 
@@ -48,8 +47,3 @@ for the i22 instance of BlueAPI.
     :target: https://opensource.org/licenses/Apache-2.0
     :alt: Apache License
 
-..
-    Anything below this line is used when viewing README.rst and will be replaced
-    when included in index.rst
-
-See https://DiamondLightSource.github.io/i22-bluesky for more detailed documentation.

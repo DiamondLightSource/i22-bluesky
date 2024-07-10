@@ -1,4 +1,5 @@
 from functools import partial
+from ophyd_async.core.device_save_loader import load_device, save_device
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,7 @@ IT = inject("it")
 LINKAM = inject("linkam")
 DEFAULT_PANDA = inject("panda1")
 
+ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
 
 def linkam_plan(
     start_temp: float,
@@ -109,7 +111,9 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    yield from load(detectors | {panda, linkam}, "linkam_plan")
+    loadable_devices = detectors + [panda, linkam]
+    for device in loadable_devices:
+        yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
 
     free_first_tetramm = partial(TetrammDetector, tetramm1)
     free_second_tetramm = partial(TetrammDetector, tetramm2)

@@ -28,6 +28,7 @@ DEFAULT_PANDA = inject("panda1")
 
 ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
 
+
 def linkam_plan(
     start_temp: float,
     cool_temp: float,

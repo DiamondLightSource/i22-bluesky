@@ -19,5 +19,6 @@ repos:
     name: format with ruff
     language: system
     entry: ruff format --force-exclude
+    stages: [commit]
     types: [python]
     require_serial: true

@@ -41,6 +41,7 @@ from ophyd_async.plan_stubs import (
     fly_and_collect,
 )
 
+from ophyd_async.core.device_save_loader import load_device, save_device
 from i22_bluesky.stubs import load, save
 
 FAST_DETECTORS = {
@@ -155,7 +156,10 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+    path = ROOT_SAVE_DIR / 'stopflow' /panda.__class__.__name__ /panda.name
+
+    yield from save_device(panda, )
     yield from save(
         {panda},
         "stopflow",

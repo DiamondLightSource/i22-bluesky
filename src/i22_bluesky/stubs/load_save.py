@@ -11,9 +11,8 @@ from ophyd_async.core import (
     walk_rw_signals,
 )
 
-from i22_bluesky.util.get_root import get_project_root
-
-ROOT_SAVE_DIR = get_project_root() / "pvs"
+"""Path to the root directory of the source code for the project."""
+PANDA_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "stopflow" / "panda"
 
 
 def save(
@@ -47,7 +46,7 @@ def save_device(
 
 def load_device(device: Device, config_id: str) -> MsgGenerator:
     # Pretend we have a database, which would be sensible, but it's actually files
-    device_directory = _device_directory(device, config_id)
+    device_directory = PANDA_SAVES_DIR
     file_name = device.name + ".yml"
     file_path = device_directory / file_name
 
@@ -65,7 +64,3 @@ def load_device(device: Device, config_id: str) -> MsgGenerator:
     signals = walk_rw_signals(device)
     phases = load_from_yaml(str(file_path))
     yield from set_signal_values(signals, phases)
-
-
-def _device_directory(device: Device, config_id: str) -> Path:
-    return ROOT_SAVE_DIR / config_id / device.__class__.__name__ / device.name

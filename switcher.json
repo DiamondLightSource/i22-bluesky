@@ -16,6 +16,10 @@
     "url": "https://DiamondLightSource.github.io/i22-bluesky/49-stress-test-stopflow-plan/"
   },
   {
+    "version": "7-replace-saveload-stubs-with-ophyd_async-generic-saveloading",
+    "url": "https://DiamondLightSource.github.io/i22-bluesky/7-replace-saveload-stubs-with-ophyd_async-generic-saveloading/"
+  },
+  {
     "version": "75-fix-the-stopflow-seq-table-logic",
     "url": "https://DiamondLightSource.github.io/i22-bluesky/75-fix-the-stopflow-seq-table-logic/"
   },

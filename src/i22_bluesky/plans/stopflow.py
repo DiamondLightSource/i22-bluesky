@@ -17,12 +17,8 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-<<<<<<< HEAD
-from typing import Any
-=======
 from pathlib import Path
-from typing import Any, Dict, List, Optional
->>>>>>> 7f5db33 (temporary caching solution for loading)
+from typing import Any
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
@@ -85,11 +81,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-<<<<<<< HEAD
     devices: set[Readable] = DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS,
-=======
-    devices: list[Readable] = inject(DEFAULT_DETECTORS + DEFAULT_BASELINE_MEASUREMENTS),
->>>>>>> 7f5db33 (temporary caching solution for loading)
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -168,20 +160,10 @@ def stress_test_stopflow(
 
 
 def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
-<<<<<<< HEAD
-    path = ROOT_SAVE_DIR / 'stopflow' /panda.__class__.__name__ /panda.name
-
-    yield from save_device(panda, )
-    yield from save(
-        {panda},
-        "stopflow",
-        ignore_signals={"pcap.capture", "data.capture", "data.datasets"},
-=======
     yield from save_device(
         panda,
         STOPFLOW_PANDA_SAVES_DIR,
         ignore=["pcap.capture", "data.capture", "data.datasets"],
->>>>>>> 7f5db33 (temporary caching solution for loading)
     )
 
 
@@ -252,11 +234,7 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-<<<<<<< HEAD
-        yield from load({panda}, "stopflow")
-=======
         yield from load_device(panda, STOPFLOW_PANDA_SAVES_DIR)
->>>>>>> 7f5db33 (temporary caching solution for loading)
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

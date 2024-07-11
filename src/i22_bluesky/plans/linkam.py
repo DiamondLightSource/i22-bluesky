@@ -111,9 +111,10 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    loadable_devices = detectors + [panda, linkam]
-    for device in loadable_devices:
+    for device in detectors:
         yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
+    load_device(panda, ROOT_LINKAM_SAVES_DIR, panda.__name__)
+    load_device(linkam, ROOT_LINKAM_SAVES_DIR, linkam.__name__)
 
     free_first_tetramm = partial(TetrammDetector, tetramm1)
     free_second_tetramm = partial(TetrammDetector, tetramm2)

@@ -17,6 +17,7 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
+from pathlib import Path
 from typing import Any
 
 import bluesky.plan_stubs as bps
@@ -28,6 +29,7 @@ from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable
 from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
+from ophyd_async.core.device_save_loader import load_device, save_device
 from ophyd_async.core.utils import in_micros
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.panda._table import (
@@ -41,7 +43,9 @@ from ophyd_async.plan_stubs import (
     fly_and_collect,
 )
 
-from i22_bluesky.stubs import load, save
+STOPFLOW_PANDA_SAVES_DIR = (
+    Path(__file__).parent.parent.parent / "pvs" / "stopflow" / "panda"
+)
 
 FAST_DETECTORS = {
     inject("saxs"),
@@ -155,11 +159,11 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    yield from save(
-        {panda},
-        "stopflow",
-        ignore_signals={"pcap.capture", "data.capture", "data.datasets"},
+def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+    yield from save_device(
+        panda,
+        STOPFLOW_PANDA_SAVES_DIR,
+        ignore=["pcap.capture", "data.capture", "data.datasets"],
     )
 
 
@@ -230,7 +234,7 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load({panda}, "stopflow")
+        yield from load_device(panda, STOPFLOW_PANDA_SAVES_DIR)
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

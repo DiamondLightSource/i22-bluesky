@@ -8,9 +8,9 @@ from dodal.common import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
+from ophyd_async.core.device_save_loader import load_device
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 
-from i22_bluesky.stubs import load
 from i22_bluesky.stubs.linkam import scan_linkam
 from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
 
@@ -25,6 +25,8 @@ I0 = inject("i0")
 IT = inject("it")
 LINKAM = inject("linkam")
 DEFAULT_PANDA = inject("panda1")
+
+ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
 
 
 def linkam_plan(
@@ -109,7 +111,10 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    yield from load(detectors | {panda, linkam}, "linkam_plan")
+    for device in detectors:
+        yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
+    load_device(panda, ROOT_LINKAM_SAVES_DIR, panda.__name__)
+    load_device(linkam, ROOT_LINKAM_SAVES_DIR, linkam.__name__)
 
     free_first_tetramm = partial(TetrammDetector, tetramm1)
     free_second_tetramm = partial(TetrammDetector, tetramm2)

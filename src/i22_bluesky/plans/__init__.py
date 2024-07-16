@@ -1,4 +1,5 @@
 from .linkam import linkam_plan
+from .simple_heatup_plan import simple_heatup_plan
 from .stopflow import (
     check_detectors_for_stopflow,
     check_stopflow_assembly,
@@ -16,4 +17,6 @@ __all__ = [
     "check_stopflow_experiment",
     "save_stopflow",
     "stress_test_stopflow",
+    "simple_heatup_plan"
+
 ]

@@ -7,7 +7,7 @@ from bluesky.preprocessors import finalize_decorator
 from dls_bluesky_core.core import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import TetrammDetector
-from dodal.plans.data_session_metadata import attach_session_metadata_decorator
+from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
 
@@ -18,7 +18,7 @@ from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_setti
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 
 
-@attach_session_metadata_decorator()
+@attach_data_session_metadata_decorator()
 def linkam_plan(
     start_temp: float,
     cool_temp: float,

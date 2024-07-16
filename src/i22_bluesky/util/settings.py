@@ -46,7 +46,7 @@ def load_saxs_linkam_settings(linkam: Device, saxs: PilatusDetector, path: Path)
 
 
 def load_waxs_settings(waxs: PilatusDetector, path: Path):
-    return
+   yield from {}
 
 
 # yield from bps.mv(

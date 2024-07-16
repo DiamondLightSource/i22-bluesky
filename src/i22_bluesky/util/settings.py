@@ -41,7 +41,7 @@ def load_saxs_linkam_settings(linkam: Device, saxs: PilatusDetector, path: Path)
     # make_stats_sum_xml(path / "stats_sum_stamping.xml"),
     yield from bps.mv(
         saxs.drv.nd_attributes_file,
-        make_saxs_linkam_stamping_xml(linkam, path / "drv_linkam_stamping.xml"),
+        path / "drv_linkam_stamping.xml",
     )
 
 
@@ -49,5 +49,5 @@ def load_waxs_settings(waxs: PilatusDetector, path: Path):
     pass
     yield from bps.mv(
         waxs.stats.nd_attributes_file,
-        make_stats_sum_xml(path / "stats_sum_stamping.xml"),
+        path / "stats_sum_stamping.xml",
     )

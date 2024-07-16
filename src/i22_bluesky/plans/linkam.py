@@ -17,6 +17,7 @@ from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_setti
 
 # TODO: Define args as tuple (aim, step, rate) or dataclass?
 
+XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
 @attach_data_session_metadata_decorator()
 def linkam_plan(

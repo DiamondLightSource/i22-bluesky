@@ -104,13 +104,8 @@ def linkam_plan(
 
     yield from load(detectors + [panda, linkam], "linkam_plan")
 
-    free_first_tetramm = partial(TetrammDetector, tetramm1)
-    free_second_tetramm = partial(TetrammDetector, tetramm2)
-
     devices = [flyer] + detectors
 
-    @finalize_decorator(free_first_tetramm)
-    @finalize_decorator(free_second_tetramm)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():

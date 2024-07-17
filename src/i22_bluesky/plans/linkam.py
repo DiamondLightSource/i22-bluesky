@@ -7,6 +7,7 @@ from bluesky.preprocessors import finalize_decorator
 from dodal.common import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.tetramm import TetrammDetector
+from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.core.device_save_loader import load_device
 from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
@@ -29,6 +30,7 @@ DEFAULT_PANDA = inject("panda1")
 ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
 
 
+@attach_data_session_metadata_decorator()
 def linkam_plan(
     start_temp: float,
     cool_temp: float,

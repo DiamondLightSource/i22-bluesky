@@ -1,5 +1,6 @@
 from bluesky.protocols import Readable
 from dodal.common import inject
+from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import StandardDetector
 from ophyd_async.panda import HDFPanda
 
@@ -28,3 +29,4 @@ DEFAULT_BASELINE_MEASUREMENTS: set[Readable] = {
 }
 
 DEFAULT_PANDA: HDFPanda = inject("panda1")
+DEFAULT_LINKAM: Linkam3 = inject("linkam")

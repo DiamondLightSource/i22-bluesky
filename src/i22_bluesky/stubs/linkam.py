@@ -71,7 +71,7 @@ class LinkamTrajectory(BaseModel):
     )
     path: list[LinkamPathSegment] = Field(
         description="Ordered list of segments describing the temperature path.",
-        min_length=1,
+        min_items=1,
     )
     default_num_frames: int | None = Field(
         description="Number of frames to collect if not overriden by segment. \

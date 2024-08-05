@@ -14,7 +14,7 @@ description = "Plans and behaviours specific to the i22 beamline at DiamondLight
 dependencies = [
     "dls_dodal @ git+https://github.com/DiamondLightSource/dodal",
     "ophyd_async",
-    "numpy<2.0.0",
+    "numpy<3.0.0",
 ] # Add project dependencies here, e.g. ["click", "numpy"]
 dynamic = ["version"]
 license.file = "LICENSE"

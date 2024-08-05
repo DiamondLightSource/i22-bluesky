@@ -1,7 +1,5 @@
 import bluesky.plan_stubs as bps
-from dodal.common import MsgGenerator, inject
-
-
+from dodal.common import MsgGenerator
 from dodal.devices.pressure_cell import PressureCell
 
 

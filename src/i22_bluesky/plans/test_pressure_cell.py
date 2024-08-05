@@ -9,7 +9,7 @@ def test_pressure_cell() -> MsgGenerator:
     yield from {}
 
 
-DEFAULT_PRESSURE_CELL = PressureCell("DEFAULT_PRESSURE_CELL")
+DEFAULT_PRESSURE_CELL = inject("DEFAULT_PRESSURE_CELL")
 
 
 def make_popping_sound(

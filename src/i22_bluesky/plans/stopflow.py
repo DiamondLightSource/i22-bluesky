@@ -159,7 +159,7 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     yield from save_device(
         panda,
         STOPFLOW_PANDA_SAVES_DIR,

@@ -1,4 +1,3 @@
-
 import bluesky.plan_stubs as bps
 from dodal.common import MsgGenerator, inject
 
@@ -6,9 +5,22 @@ from dodal.common import MsgGenerator, inject
 from dodal.devices.pressure_cell import PressureCell
 
 
-def test_pressure_cell()-> MsgGenerator:
+def test_pressure_cell() -> MsgGenerator:
     yield from {}
 
 
-def make_popping_sound() -> MsgGenerator:
+DEFAULT_PRESSURE_CELL = PressureCell("DEFAULT_PRESSURE_CELL")
+
+
+def make_popping_sound(
+    pressure_cell: PressureCell = DEFAULT_PRESSURE_CELL,
+) -> MsgGenerator:
+    # set V3 to open
+    # pressure_cell.all_valves_control.fast_valve_control[3].set(FastValveControlRequest.OPEN)
+    # set V5 or V6 to open
+    # pressure_cell.all_valves_control.valve_control[5].set(ValveControlRequest.OPEN)
     yield from bps.mv(pressure_cell, 0)
+    # todo expect the pressure to rise
+    readout = pressure_cell.cell_temperature.read()
+    # ok but which pressure transducer?
+    yield from bps.collect(pressure_cell.pressure_transducers[1], name="omron_pressure")

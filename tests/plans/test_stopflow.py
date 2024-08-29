@@ -369,3 +369,16 @@ def test_stopflow_plan():
             baseline=set(),
         )
     )
+
+
+async def test_stopflow_generates_right_documents(
+    RE: RunEngine, detectors: tuple[StandardDetector]
+):
+    names = []
+    docs = []
+
+    def append_output(name, doc):
+        names.append(name)
+        docs.append(doc)
+
+    RE.subscribe(append_output)

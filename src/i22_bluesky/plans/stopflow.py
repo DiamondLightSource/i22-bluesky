@@ -43,35 +43,16 @@ from ophyd_async.plan_stubs import (
     fly_and_collect,
 )
 
+from i22_bluesky.util.baseline import (
+    DEFAULT_BASELINE_MEASUREMENTS,
+    DEFAULT_DETECTORS,
+    DEFAULT_PANDA,
+    FAST_DETECTORS,
+)
+
 STOPFLOW_PANDA_SAVES_DIR = (
     Path(__file__).parent.parent.parent / "pvs" / "stopflow" / "panda"
 )
-
-FAST_DETECTORS = {
-    inject("saxs"),
-    inject("waxs"),
-    inject("i0"),
-    inject("it"),
-}
-
-DEFAULT_DETECTORS = FAST_DETECTORS | {inject("oav")}
-
-DEFAULT_BASELINE_MEASUREMENTS = {
-    inject("fswitch"),
-    inject("slits_1"),
-    inject("slits_2"),
-    inject("slits_3"),
-    # inject("slits_4"), Until we make this device
-    inject("slits_5"),
-    inject("slits_6"),
-    inject("hfm"),
-    inject("vfm"),
-    inject("undulator"),
-    inject("dcm"),
-    inject("synchrotron"),
-}
-
-DEFAULT_PANDA = inject("panda1")
 
 #: Buffer added to deadtime to handle minor discrepencies between detector
 #: and panda clocks

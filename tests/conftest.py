@@ -30,7 +30,7 @@ def RE(request):
             except TransitionError:
                 pass
         loop.call_soon_threadsafe(loop.stop)
-        RE._th.join()
+        RE._th.join()  # noqa: SLF001
         loop.close()
 
     request.addfinalizer(clean_event_loop)

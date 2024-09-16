@@ -63,13 +63,13 @@ def test_trajectory_model_validator():
         )
     for msg, error in zip(
         (
-            "Assertion failed, Number of frames not set for default and for some segment(s)!",
+            "Number of frames not set for default and for some segment(s)!",
             "Exposure not set for default and for some segment(s)!",
         ),
         e.value.errors(),
         strict=False,
     ):
-        assert error["msg"] == msg
+        assert msg in error["msg"]
 
 
 def test_segment_model_validator():

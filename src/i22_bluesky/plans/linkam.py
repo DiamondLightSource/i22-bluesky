@@ -1,12 +1,9 @@
-from functools import partial
 from pathlib import Path
 from typing import Any
 
 import bluesky.preprocessors as bpp
-from bluesky.preprocessors import finalize_decorator
 from dodal.common import MsgGenerator, inject
 from dodal.devices.linkam3 import Linkam3
-from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
 from ophyd_async.core.device_save_loader import load_device
@@ -118,13 +115,8 @@ def linkam_plan(
     load_device(panda, ROOT_LINKAM_SAVES_DIR, panda.__name__)
     load_device(linkam, ROOT_LINKAM_SAVES_DIR, linkam.__name__)
 
-    free_first_tetramm = partial(TetrammDetector, tetramm1)
-    free_second_tetramm = partial(TetrammDetector, tetramm2)
-
     devices = {flyer} | detectors
 
-    @finalize_decorator(free_first_tetramm)
-    @finalize_decorator(free_second_tetramm)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():

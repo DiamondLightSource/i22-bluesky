@@ -9,6 +9,12 @@ from ophyd_async.epics.areadetector import (
     PilatusDetector,
 )
 
+SAVES_ROOT = Path(__file__).parent.parent.parent
+
+
+def get_device_save_dir(plan_name: str) -> Path:
+    return SAVES_ROOT / f"pvs/{plan_name}"
+
 
 @lru_cache(maxsize=1)
 def make_stats_sum_xml(path: Path) -> str:

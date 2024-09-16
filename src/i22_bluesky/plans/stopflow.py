@@ -17,7 +17,6 @@
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
 
-from pathlib import Path
 from typing import Any
 
 import bluesky.plan_stubs as bps
@@ -49,10 +48,7 @@ from i22_bluesky.util.baseline import (
     DEFAULT_PANDA,
     FAST_DETECTORS,
 )
-
-STOPFLOW_PANDA_SAVES_DIR = (
-    Path(__file__).parent.parent.parent / "pvs" / "stopflow" / "panda"
-)
+from i22_bluesky.util.settings import get_device_save_dir
 
 #: Buffer added to deadtime to handle minor discrepencies between detector
 #: and panda clocks
@@ -143,7 +139,7 @@ def stress_test_stopflow(
 def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     yield from save_device(
         panda,
-        STOPFLOW_PANDA_SAVES_DIR,
+        get_device_save_dir(stopflow.__name__),
         ignore=["pcap.capture", "data.capture", "data.datasets"],
     )
 
@@ -215,7 +211,7 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load_device(panda, STOPFLOW_PANDA_SAVES_DIR)
+        yield from load_device(panda, get_device_save_dir(stopflow.__name__))
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

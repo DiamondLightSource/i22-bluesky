@@ -18,7 +18,7 @@ DEFAULT_BASELINE_MEASUREMENTS: set[Readable] = {
     inject("slits_1"),
     inject("slits_2"),
     inject("slits_3"),
-    # inject("slits_4"), Until we make this device
+    inject("slits_4"),
     inject("slits_5"),
     inject("slits_6"),
     inject("hfm"),

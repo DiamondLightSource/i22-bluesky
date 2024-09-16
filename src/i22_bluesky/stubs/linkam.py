@@ -57,7 +57,9 @@ class LinkamPathSegment(BaseModel):
 
     @model_validator(mode="after")
     def check_num_or_step_set(self) -> LinkamPathSegment:
-        assert self.num is not None or self.step is not None
+        assert (
+            self.num is not None or self.step is not None
+        ), "Must have set at least one of 'num', 'step'"
         return self
 
 
@@ -86,16 +88,12 @@ class LinkamTrajectory(BaseModel):
 
     @model_validator(mode="after")
     def check_defaults(self) -> LinkamTrajectory:
-        if self.default_num_frames is None and any(
-            segment.num_frames is None for segment in self.path
-        ):
-            raise ValueError(
-                "Number of frames not set for default and for some segment(s)!"
-            )
-        if self.default_exposure is None and any(
-            segment.exposure is None for segment in self.path
-        ):
-            raise ValueError("Exposure not set for default and for some segment(s)!")
+        assert self.default_num_frames is not None or all(
+            segment.num_frames is not None for segment in self.path
+        ), "Number of frames not set for default and for some segment(s)!"
+        assert self.default_exposure is not None or all(
+            segment.exposure is not None for segment in self.path
+        ), "Exposure not set for default and for some segment(s)!"
         return self
 
 
@@ -139,7 +137,7 @@ def capture_linkam_segment(
     fly: bool = False,
 ) -> MsgGenerator:
     # Move to start in case previous segment has misaligned step
-    yield from bps.mv(start)
+    yield from bps.mv(linkam, start)
     # Set temperature ramp rate to expected for segment
     yield from bps.mv(linkam.ramp_rate, rate)
 

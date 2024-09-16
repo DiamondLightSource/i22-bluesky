@@ -7,10 +7,12 @@ from bluesky.utils import Msg
 from ophyd_async.core import (
     DeviceCollector,
     PathProvider,
+    StaticFilenameProvider,
     StaticPathProvider,
     TriggerInfo,
 )
 from ophyd_async.epics.adpilatus import PilatusDetector
+from pydantic import ValidationError
 
 from i22_bluesky.stubs import LinkamPathSegment, LinkamTrajectory
 from i22_bluesky.stubs.linkam import capture_linkam_segment
@@ -24,9 +26,9 @@ def test_trajectory_validation_enforced():
     for loc, msg, error in zip(
         (("path",), ("default_num_frames",), ("default_exposure",)),
         (
-            "ensure this value has at least 1 items",
-            "ensure this value is greater than 0",
-            "ensure this value is greater than 0.0",
+            "List should have at least 1 item after validation, not 0",
+            "Input should be greater than 0",
+            "Input should be greater than 0",
         ),
         e.value.errors(),
         strict=False,
@@ -41,10 +43,10 @@ def test_segment_validation_enforced():
     for loc, msg, error in zip(
         (("rate",), ("num",), ("num_frames",), ("exposure",)),
         (
-            "ensure this value is greater than 0.0",
-            "ensure this value is greater than 0",
-            "ensure this value is greater than 0",
-            "ensure this value is greater than 0.0",
+            "Input should be greater than 0",
+            "Input should be greater than 0",
+            "Input should be greater than 0",
+            "Input should be greater than 0",
         ),
         e.value.errors(),
         strict=False,
@@ -53,15 +55,15 @@ def test_segment_validation_enforced():
         assert error["msg"] == msg
 
 
-def test_trajectory_root_validator():
-    with pytest.raises(Exception) as e:
+def test_trajectory_model_validator():
+    with pytest.raises(ValidationError) as e:
         LinkamTrajectory(
             start=13.0,
             path=[LinkamPathSegment(stop=13.0, rate=0.01, num=1)],
         )
     for msg, error in zip(
         (
-            "Num frames not set for default and for some segment(s)!",
+            "Assertion failed, Number of frames not set for default and for some segment(s)!",
             "Exposure not set for default and for some segment(s)!",
         ),
         e.value.errors(),
@@ -70,7 +72,7 @@ def test_trajectory_root_validator():
         assert error["msg"] == msg
 
 
-def test_segment_root_validator():
+def test_segment_model_validator():
     with pytest.raises(ValueError, match="Must have set at least one of 'num', 'step'"):
         LinkamPathSegment(stop=13.0, rate=1.3)
 
@@ -89,8 +91,13 @@ def stepped_trajectory():
 
 
 @pytest.fixture
-def path_provider(tmp_path: Path) -> PathProvider:
-    return StaticPathProvider(tmp_path)
+def name_provider(name="foo"):
+    return StaticFilenameProvider(name)
+
+
+@pytest.fixture
+def path_provider(name_provider, tmp_path: Path) -> PathProvider:
+    return StaticPathProvider(name_provider, tmp_path)
 
 
 @pytest.fixture

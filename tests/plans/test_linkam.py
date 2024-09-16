@@ -6,11 +6,11 @@ from bluesky.run_engine import RunEngine
 from bluesky.utils import Msg
 from ophyd_async.core import (
     DeviceCollector,
-    DirectoryProvider,
-    StaticDirectoryProvider,
+    PathProvider,
+    StaticPathProvider,
     TriggerInfo,
 )
-from ophyd_async.epics.areadetector import PilatusDetector
+from ophyd_async.epics.adpilatus import PilatusDetector
 
 from i22_bluesky.stubs import LinkamPathSegment, LinkamTrajectory
 from i22_bluesky.stubs.linkam import capture_linkam_segment
@@ -29,6 +29,7 @@ def test_trajectory_validation_enforced():
             "ensure this value is greater than 0.0",
         ),
         e.value.errors(),
+        strict=False,
     ):
         assert error["loc"] == loc
         assert error["msg"] == msg
@@ -46,6 +47,7 @@ def test_segment_validation_enforced():
             "ensure this value is greater than 0.0",
         ),
         e.value.errors(),
+        strict=False,
     ):
         assert error["loc"] == loc
         assert error["msg"] == msg
@@ -63,6 +65,7 @@ def test_trajectory_root_validator():
             "Exposure not set for default and for some segment(s)!",
         ),
         e.value.errors(),
+        strict=False,
     ):
         assert error["msg"] == msg
 
@@ -86,21 +89,21 @@ def stepped_trajectory():
 
 
 @pytest.fixture
-def directory_provider(tmp_path: Path) -> DirectoryProvider:
-    return StaticDirectoryProvider(tmp_path)
+def path_provider(tmp_path: Path) -> PathProvider:
+    return StaticPathProvider(tmp_path)
 
 
 @pytest.fixture
-def mock_saxs(RE: RunEngine, directory_provider: DirectoryProvider) -> PilatusDetector:
+def mock_saxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
     with DeviceCollector(mock=True):
-        saxs = PilatusDetector("SAXS:", directory_provider)
+        saxs = PilatusDetector("SAXS:", path_provider)
     return saxs
 
 
 @pytest.fixture
-def mock_waxs(RE: RunEngine, directory_provider: DirectoryProvider) -> PilatusDetector:
+def mock_waxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
     with DeviceCollector(mock=True):
-        waxs = PilatusDetector("WAXS:", directory_provider)
+        waxs = PilatusDetector("WAXS:", path_provider)
     return waxs
 
 

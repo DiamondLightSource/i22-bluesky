@@ -2,7 +2,7 @@ from bluesky.protocols import Readable
 from dodal.common import inject
 from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import StandardDetector
-from ophyd_async.panda import HDFPanda
+from ophyd_async.fastcs.panda import HDFPanda
 
 FAST_DETECTORS: set[StandardDetector] = {
     inject("saxs"),

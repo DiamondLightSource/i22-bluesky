@@ -1,14 +1,14 @@
-from typing import Any
+from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
 from dodal.common import MsgGenerator, inject
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
-from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
-from ophyd_async.core.device_save_loader import load_device, save_device
-from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from pydantic import Field
+from ophyd_async.core import StandardDetector, StandardFlyer, load_device, save_device
+from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
+from ophyd_async.plan_stubs import setup_ndstats_sum
+from pydantic import validate_call
 
 from i22_bluesky.stubs.linkam import (
     LinkamTrajectory,
@@ -20,8 +20,6 @@ from i22_bluesky.util.baseline import (
     DEFAULT_PANDA,
 )
 from i22_bluesky.util.settings import (
-    enable_stats_sum,
-    get_ad_xml_dir,
     get_device_save_dir,
     stamp_temp_pv,
 )
@@ -29,7 +27,7 @@ from i22_bluesky.util.settings import (
 DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
 
 
-def save_linkam(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
+def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     yield from save_device(
         panda,
         get_device_save_dir(linkam_plan.__name__),
@@ -38,35 +36,27 @@ def save_linkam(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
 
 
 @attach_data_session_metadata_decorator()
+@validate_call(config={"arbitrary_types_allowed": True})
 def linkam_plan(
-    trajectory: LinkamTrajectory = Field(
-        description="Trajectory for the scan to follow."
-    ),
-    linkam: Linkam3 = Field(
-        description="Temperature controller.", default=DEFAULT_LINKAM
-    ),
-    panda: HDFPanda = Field(
-        description="Panda with sequence table configured and connected to \
+    trajectory: Annotated[LinkamTrajectory, "Trajectory for the scan to follow."],
+    linkam: Annotated[Linkam3, "Temperature controller."] = DEFAULT_LINKAM,
+    panda: Annotated[
+        HDFPanda,
+        "Panda with sequence table configured and connected to \
         FastShutter (outa) and each of detectors (outb).",
-        default=DEFAULT_PANDA,
-    ),
-    stamped_detector: StandardDetector = Field(
-        description="AreaDetector to configure to stamp the Linkam temperature. \
+    ] = DEFAULT_PANDA,
+    stamped_detector: Annotated[
+        StandardDetector,
+        "AreaDetector to configure to stamp the Linkam temperature. \
             Will be automatically added to detectors if not included.",
-        default=DEFAULT_STAMPED_DETECTOR,
-    ),
-    detectors: set[StandardDetector] = Field(
-        description="Detectors to capture at each temperature value",
-        default=DEFAULT_DETECTORS,
-    ),
-    shutter_time: float = Field(
-        description="Time allowed for opening shutter before triggering detectors.",
-        default=0.04,
-        json_schema_extra={"units": "s"},
-    ),
-    stream_name: str = Field(
-        description="Stream name for bluesky documents.", default="primary"
-    ),
+    ] = DEFAULT_STAMPED_DETECTOR,
+    detectors: Annotated[
+        set[StandardDetector], "Detectors to capture at each temperature value"
+    ] = DEFAULT_DETECTORS,
+    shutter_time: Annotated[
+        float, "Time allowed for opening shutter before triggering detectors."
+    ] = 0.04,
+    stream_name: Annotated[str, "Stream name for bluesky documents."] = "primary",
     metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """
@@ -86,7 +76,7 @@ def linkam_plan(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
-    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
+    flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
     detectors = detectors | {stamped_detector}
     devices = detectors | {linkam, panda}
 
@@ -110,11 +100,9 @@ def linkam_plan(
         yield from load_device(
             device, get_device_save_dir(linkam_plan.__name__) / device.__name__
         )
-    yield from stamp_temp_pv(
-        linkam, stamped_detector, get_ad_xml_dir(linkam_plan.__name__)
-    )
+    yield from stamp_temp_pv(linkam, stamped_detector)
     for det in detectors:
-        yield from enable_stats_sum(det, get_ad_xml_dir(linkam_plan.__name__))
+        yield from setup_ndstats_sum(det)
 
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)

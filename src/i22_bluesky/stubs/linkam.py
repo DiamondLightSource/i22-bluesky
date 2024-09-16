@@ -1,17 +1,16 @@
-from typing import Any
+from __future__ import annotations
 
 import bluesky.plan_stubs as bps
 import numpy as np
 from dodal.common import MsgGenerator
 from dodal.common.coordination import group_uuid
 from dodal.devices.linkam3 import Linkam3
-from ophyd_async.core import StandardDetector
-from ophyd_async.core.flyer import HardwareTriggeredFlyable
+from ophyd_async.core import StandardDetector, StandardFlyer
 from ophyd_async.plan_stubs import (
     fly_and_collect,
     prepare_static_seq_table_flyer_and_detectors_with_same_trigger,
 )
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class LinkamPathSegment(BaseModel):
@@ -56,12 +55,10 @@ class LinkamPathSegment(BaseModel):
         default=True,
     )
 
-    @root_validator
-    def check_num_or_step_set(cls, values: dict[str, Any]) -> dict[str, Any]:
-        num, step = values.get("num"), values.get("step")
-        if num is None and step is None:
-            raise ValueError("Must have set at least one of 'num', 'step'")
-        return values
+    @model_validator(mode="after")
+    def check_num_or_step_set(self) -> LinkamPathSegment:
+        assert self.num is not None or self.step is not None
+        return self
 
 
 class LinkamTrajectory(BaseModel):
@@ -71,7 +68,7 @@ class LinkamTrajectory(BaseModel):
     )
     path: list[LinkamPathSegment] = Field(
         description="Ordered list of segments describing the temperature path.",
-        min_items=1,
+        min_length=1,
     )
     default_num_frames: int | None = Field(
         description="Number of frames to collect if not overriden by segment. \
@@ -87,27 +84,24 @@ class LinkamTrajectory(BaseModel):
         json_schema_extra={"units": "s"},
     )
 
-    @root_validator
-    def check_defaults(cls, values: dict[str, Any]) -> dict[str, Any]:
-        path: list[LinkamPathSegment] = values["path"]
-        default_num_frames: int | None = values["default_num_frames"]
-        default_exposure: float | None = values["default_exposure"]
-        if default_num_frames is None and any(
-            segment.num_frames is None for segment in path
+    @model_validator(mode="after")
+    def check_defaults(self) -> LinkamTrajectory:
+        if self.default_num_frames is None and any(
+            segment.num_frames is None for segment in self.path
         ):
             raise ValueError(
                 "Number of frames not set for default and for some segment(s)!"
             )
-        if default_exposure is None and any(
-            segment.exposure is None for segment in path
+        if self.default_exposure is None and any(
+            segment.exposure is None for segment in self.path
         ):
             raise ValueError("Exposure not set for default and for some segment(s)!")
-        return values
+        return self
 
 
 def capture_temp(
     linkam: Linkam3,
-    flyer: HardwareTriggeredFlyable,
+    flyer: StandardFlyer,
     detectors: set[StandardDetector],
     temp: float,
     num_frames: int,
@@ -132,7 +126,7 @@ def capture_temp(
 
 def capture_linkam_segment(
     linkam: Linkam3,
-    flyer: HardwareTriggeredFlyable,
+    flyer: StandardFlyer,
     detectors: set[StandardDetector],
     start: float,
     stop: float,

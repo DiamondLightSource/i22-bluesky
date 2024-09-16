@@ -39,20 +39,25 @@ def save_linkam(panda: HDFPanda = inject(DEFAULT_PANDA)) -> MsgGenerator:
 
 @attach_data_session_metadata_decorator()
 def linkam_plan(
-    trajectory: LinkamTrajectory = Field("Trajectory for the scan to follow."),
-    linkam: Linkam3 = Field("Temperature controller.", default=DEFAULT_LINKAM),
+    trajectory: LinkamTrajectory = Field(
+        description="Trajectory for the scan to follow."
+    ),
+    linkam: Linkam3 = Field(
+        description="Temperature controller.", default=DEFAULT_LINKAM
+    ),
     panda: HDFPanda = Field(
-        "Panda with sequence table configured and connected to \
+        description="Panda with sequence table configured and connected to \
         FastShutter (outa) and each of detectors (outb).",
         default=DEFAULT_PANDA,
     ),
     stamped_detector: StandardDetector = Field(
-        "AreaDetector to configure to stamp the Linkam temperature. \
+        description="AreaDetector to configure to stamp the Linkam temperature. \
             Will be automatically added to detectors if not included.",
         default=DEFAULT_STAMPED_DETECTOR,
     ),
     detectors: set[StandardDetector] = Field(
-        "Detectors to capture at each temperature value", default=DEFAULT_DETECTORS
+        description="Detectors to capture at each temperature value",
+        default=DEFAULT_DETECTORS,
     ),
     shutter_time: float = Field(
         description="Time allowed for opening shutter before triggering detectors.",
@@ -117,7 +122,9 @@ def linkam_plan(
         start = trajectory.start
         for segment in trajectory.path:
             start, stop, num = (
-                (start, segment.stop, segment.num)
+                start,
+                segment.stop,
+                segment.num
                 if segment.num is not None
                 else step_to_num(start, segment.stop, segment.step),
             )

@@ -60,6 +60,15 @@ def linkam_plan(
     metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """
+    Follow a trajectory in temperature, collecting a number of frames either at equally
+    spaced positions or while continually scanning. e.g. for 2 segments, the first
+    stepped and the 2nd flown:
+    trajectory start   v             v final segment stop
+                       \\           /
+       stepped segment__\\__       /
+                           \\     /  flown segment
+           1st segment stop \\__ /
+        exposures:    xx  xx  xx   1/N seconds
     Args:
         start_temp: Initial temperature to reach before starting experiment
         trajectory: Trajectory to follow: each segment begins at the end of the previous

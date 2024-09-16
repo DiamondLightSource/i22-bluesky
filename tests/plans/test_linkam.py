@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import ANY, Mock
 
+import numpy as np
 import pytest
 from bluesky.run_engine import RunEngine
 from bluesky.utils import Msg
@@ -135,7 +136,7 @@ def test_stepped_behaviour_to_all_temps_in_order(
     )
     # Initial move to start of region
     previous_set_index = msgs.index(Msg("set", mock_linkam, 0.0, group=ANY)) + 1
-    for temp in {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0}:
+    for temp in np.linspace(0, 10, num=11):
         # We set to each temperature
         set_index = msgs.index(
             Msg("set", mock_linkam, temp, group=ANY), previous_set_index

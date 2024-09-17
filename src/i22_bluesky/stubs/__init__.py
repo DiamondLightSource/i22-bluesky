@@ -1,3 +1,13 @@
-from .linkam import scan_linkam
+from .linkam import (
+    LinkamPathSegment,
+    LinkamTrajectory,
+    capture_linkam_segment,
+    capture_temp,
+)
 
-__all__ = ["scan_linkam"]
+__all__ = [
+    "LinkamPathSegment",
+    "LinkamTrajectory",
+    "capture_linkam_segment",
+    "capture_temp",
+]

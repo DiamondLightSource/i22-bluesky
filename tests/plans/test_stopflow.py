@@ -7,13 +7,17 @@ from bluesky.run_engine import RunEngine
 from dodal.beamlines.i22 import i0, it, saxs, waxs
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import (
+    StandardDetector,
     callback_on_mock_put,
     set_mock_value,
 )
-from ophyd_async.core.detector import StandardDetector
-from ophyd_async.epics.areadetector.pilatus import PilatusDetector
-from ophyd_async.panda import SeqTable, SeqTrigger
-from ophyd_async.panda._table import DatasetTable, PandaHdf5DatasetType
+from ophyd_async.epics.adpilatus import PilatusDetector
+from ophyd_async.fastcs.panda import (
+    DatasetTable,
+    PandaHdf5DatasetType,
+    SeqTable,
+    SeqTrigger,
+)
 
 from i22_bluesky.plans import check_detectors_for_stopflow, stopflow
 from i22_bluesky.plans.stopflow import (

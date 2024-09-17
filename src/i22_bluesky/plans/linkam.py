@@ -1,80 +1,83 @@
-from functools import partial
-from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
-from bluesky.preprocessors import finalize_decorator
 from dodal.common import MsgGenerator, inject
+from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
-from dodal.devices.tetramm import TetrammDetector
-from ophyd_async.core import HardwareTriggeredFlyable, StandardDetector
-from ophyd_async.core.device_save_loader import load_device
-from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
+from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
+from ophyd_async.core import StandardDetector, StandardFlyer, load_device, save_device
+from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
+from ophyd_async.plan_stubs import setup_ndstats_sum
+from pydantic import validate_call
 
-from i22_bluesky.stubs.linkam import scan_linkam
-from i22_bluesky.util.settings import load_saxs_linkam_settings, load_waxs_settings
+from i22_bluesky.stubs.linkam import (
+    LinkamTrajectory,
+    capture_linkam_segment,
+)
+from i22_bluesky.util.baseline import (
+    DEFAULT_DETECTORS,
+    DEFAULT_LINKAM,
+    DEFAULT_PANDA,
+)
+from i22_bluesky.util.settings import (
+    get_device_save_dir,
+    stamp_temp_pv,
+)
 
-# TODO: Define args as tuple (aim, step, rate) or dataclass?
-
-# TODO: Define generic plan that follows N temperature sections?
-XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
-
-SAXS = inject("saxs")
-WAXS = inject("waxs")
-I0 = inject("i0")
-IT = inject("it")
-LINKAM = inject("linkam")
-DEFAULT_PANDA = inject("panda1")
-
-ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
+DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
 
 
+def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+    yield from save_device(
+        panda,
+        get_device_save_dir(linkam_plan.__name__),
+        ignore=["pcap.capture", "data.capture", "data.datasets"],
+    )
+
+
+@attach_data_session_metadata_decorator()
+@validate_call(config={"arbitrary_types_allowed": True})
 def linkam_plan(
-    start_temp: float,
-    cool_temp: float,
-    cool_step: float,
-    cool_rate: float,
-    heat_temp: float,
-    heat_step: float,
-    heat_rate: float,
-    num_frames: int,
-    exposure: float,
+    trajectory: Annotated[LinkamTrajectory, "Trajectory for the scan to follow."],
+    linkam: Annotated[Linkam3, "Temperature controller."] = DEFAULT_LINKAM,
+    panda: Annotated[
+        HDFPanda,
+        "Panda with sequence table configured and connected to \
+        FastShutter (outa) and each of detectors (outb).",
+    ] = DEFAULT_PANDA,
+    stamped_detector: Annotated[
+        StandardDetector,
+        "AreaDetector to configure to stamp the Linkam temperature. \
+            Will be automatically added to detectors if not included.",
+    ] = DEFAULT_STAMPED_DETECTOR,
+    detectors: Annotated[
+        set[StandardDetector], "Detectors to capture at each temperature value"
+    ] = DEFAULT_DETECTORS,
+    shutter_time: Annotated[
+        float, "Time allowed for opening shutter before triggering detectors."
+    ] = 0.04,
+    stream_name: Annotated[str, "Stream name for bluesky documents."] = "primary",
     metadata: dict[str, Any] | None = None,
-    saxs: StandardDetector = SAXS,
-    waxs: StandardDetector = WAXS,
-    tetramm1: StandardDetector = I0,
-    tetramm2: StandardDetector = IT,
-    linkam: Linkam3 = LINKAM,
-    panda: HDFPanda = DEFAULT_PANDA,
 ) -> MsgGenerator:
-    """Cool in steps, then heat constantly, taking collections of num_frames each time::
-
-                      _             __ heat_temp
-                     / \\           /
-        cool_step_______\\__       /
-                           \\     /
-                  cool_temp \\__ /
-        exposures        xx  xx   xx    num_frames=2 each time
-
-    Fast shutter will be opened for each group of exposures
-
-
+    """
+    Follow a trajectory in temperature, collecting a number of frames either at equally
+    spaced positions or while continually scanning. e.g. for 2 segments, the first
+    stepped and the 2nd flown:
+    trajectory start   v             v final segment stop
+                       \\           /
+       stepped segment__\\__       /
+                           \\     /  flown segment
+           1st segment stop \\__ /
+        exposures:    xx  xx  xx   1/N seconds
     Args:
-        saxs: saxs detector
-        waxs: waxs detector
+        start_temp: Initial temperature to reach before starting experiment
+        trajectory: Trajectory to follow: each segment begins at the end of the previous
+        num_frames: Default number of frames at each captured point
+        exposure: Default exposure for each frame
         linkam: Linkam temperature stage
         panda: PandA for controlling flyable motion
-        start_temp: initial temperature to reach before starting experiment
-        cool_temp: target end temp for cooling stage
-        cool_step: temperature step dT after each to perform scan
-        cool_rate: rate of change of temperature with time, dT/dt
-        heat_temp: target end temp for heating stage
-        heat_step: temperature step dT after each to perform scan
-        heat_rate: rate of change of temperature with time, dT/dt
-        num_frames: number of frames to take at each point in temperature
-        exposure: exposure time of detectors
-        metadata: metadata: Key-value metadata to include in exported data,
-            defaults to None.
+        stamped_detector: Detector to stamp temperature PV to H5 file
+        detectors: Other StandardDetectors to capture
 
     Returns:
         MsgGenerator: Plan
@@ -82,25 +85,16 @@ def linkam_plan(
     Yields:
         Iterator[MsgGenerator]: Bluesky messages
     """
-    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
-    detectors = {saxs, waxs, tetramm1, tetramm2}
+    flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
+    detectors = detectors | {stamped_detector}
+    devices = detectors | {linkam, panda}
 
     plan_args = {
-        "start_temp": start_temp,
-        "cool_temp": cool_temp,
-        "cool_step": cool_step,
-        "cool_rate": cool_rate,
-        "heat_temp": heat_temp,
-        "heat_step": heat_step,
-        "heat_rate": heat_rate,
-        "num_frames": num_frames,
-        "exposure": exposure,
-        "saxs": repr(saxs),
-        "waxs": repr(waxs),
-        "tetramm1": repr(tetramm1),
-        "tetramm2": repr(tetramm2),
-        "linkam": repr(linkam),
-        "panda": repr(panda),
+        "trajectory": trajectory,
+        "linkam": linkam.name,
+        "panda": panda.name,
+        "stamped_detector": stamped_detector.name,
+        "detectors": {detector.name for detector in detectors},
     }
     _md = {
         "detectors": {device.name for device in detectors},
@@ -111,48 +105,41 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    for device in detectors:
-        yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
-    load_device(panda, ROOT_LINKAM_SAVES_DIR, panda.__name__)
-    load_device(linkam, ROOT_LINKAM_SAVES_DIR, linkam.__name__)
+    for device in devices:
+        yield from load_device(
+            device, get_device_save_dir(linkam_plan.__name__) / device.__name__
+        )
+    yield from stamp_temp_pv(linkam, stamped_detector)
+    for det in detectors:
+        yield from setup_ndstats_sum(det)
 
-    free_first_tetramm = partial(TetrammDetector, tetramm1)
-    free_second_tetramm = partial(TetrammDetector, tetramm2)
-
-    devices = {flyer} | detectors
-
-    @finalize_decorator(free_first_tetramm)
-    @finalize_decorator(free_second_tetramm)
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_linkam_plan():
-        yield from load_saxs_linkam_settings(linkam, saxs, XML_PATH)
-        yield from load_waxs_settings(waxs, XML_PATH)
-        # Step down at the cool rate
-        yield from scan_linkam(
-            linkam=linkam,
-            flyer=flyer,
-            detectors=detectors,
-            start=start_temp,
-            stop=cool_temp,
-            step=cool_step,
-            rate=cool_rate,
-            num_frames=num_frames,
-            exposure=exposure,
-            fly=False,
-        )
-        # Fly up at the heat rate
-        yield from scan_linkam(
-            linkam=linkam,
-            flyer=flyer,
-            start=cool_temp,
-            stop=heat_temp,
-            step=heat_step,
-            rate=heat_rate,
-            num_frames=num_frames,
-            exposure=exposure,
-            fly=True,
-        )
+        start = trajectory.start
+        for segment in trajectory.path:
+            start, stop, num = (
+                start,
+                segment.stop,
+                segment.num
+                if segment.num is not None
+                else step_to_num(start, segment.stop, segment.step),
+            )
+            yield from capture_linkam_segment(
+                linkam,
+                flyer,
+                detectors,
+                start,
+                stop,
+                num,
+                segment.rate,
+                segment.num_frames or trajectory.default_num_frames,
+                segment.exposure or trajectory.default_exposure,
+                fly=segment.flown,
+                shutter_time=shutter_time,
+                stream_name=stream_name,
+            )
+            start = segment.stop
 
     rs_uid = yield from inner_linkam_plan()
     return rs_uid

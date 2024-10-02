@@ -13,7 +13,9 @@ def make_popping_sound(
     pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL,
 ) -> MsgGenerator:
     # set V3 to open
-    # pressure_cell.all_valves_control.fast_valve_control[3].set(FastValveControlRequest.OPEN)  # noqa: E501
+    pressure_cell.all_valves_control.fast_valve_control[3].set(
+        FastValveControlRequest.OPEN
+    )  # noqa: E501
     # set V5 or V6 to open
     # pressure_cell.all_valves_control.valve_control[5].set(ValveControlRequest.OPEN)
     yield from bps.mv(pressure_cell, 0)
@@ -35,7 +37,9 @@ def lower_pressure(
     for lower 6 must be open
     """
     # todo not sure what is the difference exactly
-    # yield from bps.read(pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN))
+    yield from bps.read(
+        pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
+    )
     yield pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
     # the pressure lowering itself
     yield pressure_cell.pump.pump_motor_direction(PumpMotorControlRequest.REVERSE)
@@ -43,7 +47,8 @@ def lower_pressure(
 
     # in intervals check the pressure until reaches the target pressure
     while readout > target_pressure:
-        # todo consider adding just read_cell method on the cell to read the omron pressure at the third transducer
+        # todo consider adding just read_cell method on the cell
+        # to read the omron pressure at the third transducer
         readout = yield from bps.read(
             pressure_cell.pressure_transducers[3], "omron_pressure"
         )

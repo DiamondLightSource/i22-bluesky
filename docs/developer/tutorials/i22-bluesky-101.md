@@ -48,6 +48,7 @@ The toolchain is long and complex, and subject to international collaboration an
 - i22 blueapi instance <https://i22-blueapi.diamond.ac.uk/>
 - kuberenetes cluster and namespace (might need asking the cloud team to give permissions) <https://k8s-i22-dashboard.diamond.ac.uk/#/workloads?namespace=i22-beamline>
 - i22 beamline file in dodal <https://github.com/DiamondLightSource/dodal/blob/main/src/dodal/beamlines/i22.py>
+- i22 tag for dodal issues <https://github.com/DiamondLightSource/dodal/labels/i22>
 - i22 specific devices in dodal <https://github.com/DiamondLightSource/dodal/tree/main/src/dodal/devices/i22>
 
 useful extensions:

@@ -7,6 +7,8 @@
 
 Plans and behaviours specific to the i22 beamline at DiamondLightSource.
 
+If you see this as a new contributor, for context please checkout the [101 page](docs/developer/tutorials/i22-bluesky-101.md).
+
 This module is intended to hold plans, stubs and other behaviours that are
 unique to the operation of the i22 beamline at Diamond Light Source, and to
 act as a repository in which development of said plans, stubs and behaviours
@@ -29,4 +31,3 @@ for the i22 instance of BlueAPI.
       sources:
         - kind: planFunctions
           module: i22-bluesky.plans
-

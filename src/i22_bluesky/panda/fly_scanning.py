@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from dls_bluesky_core.core import in_micros
 from ophyd_async.core import DetectorTrigger, TriggerInfo, TriggerLogic, wait_for_value
-from ophyd_async.panda import SeqBlock, SeqTableRow, seq_table_from_rows
+from ophyd_async.fastcs.panda import SeqBlock, SeqTable
 
 
 @dataclass
@@ -33,24 +33,22 @@ class PandARepeatedTriggerLogic(TriggerLogic[RepeatedTrigger]):
     async def prepare(self, value: RepeatedTrigger):
         trigger_time = value.num * (value.width + value.deadtime)
         pre_delay = max(value.period - 2 * self.shutter_time - trigger_time, 0)
-        table = seq_table_from_rows(
-            # Wait for pre-delay then open shutter
-            SeqTableRow(
+        table = (
+            SeqTable.row(  # Wait for pre-delay then open shutter
                 time1=in_micros(pre_delay),
                 time2=in_micros(self.shutter_time),
                 outa2=True,
-            ),
-            # Keeping shutter open, do N triggers
-            SeqTableRow(
+            )
+            + SeqTable.row(  # Keeping shutter open, do N triggers
                 repeats=value.num,
                 time1=in_micros(value.width),
                 outa1=True,
                 outb1=True,
                 time2=in_micros(value.deadtime),
                 outa2=True,
-            ),
+            )
             # Add the shutter close
-            SeqTableRow(time2=in_micros(self.shutter_time)),
+            + SeqTable.row(time2=in_micros(self.shutter_time)),
         )
         await asyncio.gather(
             self.seq.prescale_units.set("us"),

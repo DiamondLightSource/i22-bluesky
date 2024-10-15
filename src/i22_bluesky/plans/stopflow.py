@@ -74,7 +74,7 @@ def check_detectors_for_stopflow(
         device for device in devices if not isinstance(device, TetrammDetector)
     }
     yield from bp.count(
-        software_triggerable_devices,
+        tuple(software_triggerable_devices),
         num=num_frames,
     )
 

@@ -39,10 +39,8 @@ from ophyd_async.fastcs.panda import (
     HDFPanda,
     SeqTable,
     SeqTableInfo,
-    SeqTableRow,
     SeqTrigger,
     StaticSeqTableTriggerLogic,
-    seq_table_from_rows,
 )
 from ophyd_async.plan_stubs import fly_and_collect
 
@@ -324,55 +322,46 @@ def stopflow_seq_table(
 
     total_gate_time = (pre_stop_frames + post_stop_frames) * (exposure + deadtime)
     pre_delay = max(period - 2 * shutter_time - total_gate_time, 0)
-
-    rows = [
-        # Wait for pre-delay then open shutter
-        SeqTableRow(
-            time1=in_micros(pre_delay),
-            time2=in_micros(shutter_time),
-            outa2=True,
-        )
-    ]
+    # Wait for pre-delay then open shutter
+    table = SeqTable.row(
+        time1=in_micros(pre_delay),
+        time2=in_micros(shutter_time),
+        outa2=True,
+    )
 
     # Keeping shutter open, do n triggers
     if pre_stop_frames > 0:
-        rows.append(
-            SeqTableRow(
-                repeats=pre_stop_frames,
-                time1=in_micros(exposure),
-                outa1=True,
-                outb1=True,
-                time2=in_micros(deadtime),
-                outa2=True,
-            )
+        table += SeqTable.row(
+            repeats=pre_stop_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
         )
     # Do m triggers after BITA=1
     if post_stop_frames > 0:
-        rows.append(
-            SeqTableRow(
-                trigger=SeqTrigger.BITA_1,
-                repeats=1,
+        table += SeqTable.row(
+            trigger=SeqTrigger.BITA_1,
+            repeats=1,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
+        )
+        if post_stop_frames > 1:
+            table += SeqTable.row(
+                repeats=post_stop_frames - 1,
                 time1=in_micros(exposure),
                 outa1=True,
                 outb1=True,
                 time2=in_micros(deadtime),
                 outa2=True,
             )
-        )
-        if post_stop_frames > 1:
-            rows.append(
-                SeqTableRow(
-                    repeats=post_stop_frames - 1,
-                    time1=in_micros(exposure),
-                    outa1=True,
-                    outb1=True,
-                    time2=in_micros(deadtime),
-                    outa2=True,
-                )
-            )
     # Add the shutter close
-    rows.append(SeqTableRow(time2=in_micros(shutter_time)))
-    return seq_table_from_rows(*rows)
+    table += SeqTable.row(time2=in_micros(shutter_time))
+    return table
 
 
 def raise_for_minimum_exposure_times(

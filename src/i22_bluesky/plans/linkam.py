@@ -1,7 +1,8 @@
 from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
-from dodal.common import MsgGenerator, inject
+from bluesky.utils import MsgGenerator
+from dodal.beamlines.i22 import saxs
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
@@ -24,7 +25,7 @@ from i22_bluesky.util.settings import (
     stamp_temp_pv,
 )
 
-DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
+DEFAULT_STAMPED_DETECTOR: StandardDetector = saxs()
 
 
 def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:

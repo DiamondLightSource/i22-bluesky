@@ -2,7 +2,6 @@ from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
 from bluesky.utils import MsgGenerator
-from dodal.beamlines.i22 import saxs
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
@@ -15,20 +14,19 @@ from i22_bluesky.stubs.linkam import (
     LinkamTrajectory,
     capture_linkam_segment,
 )
-from i22_bluesky.util.baseline import (
-    DEFAULT_DETECTORS,
-    DEFAULT_LINKAM,
-    DEFAULT_PANDA,
+from i22_bluesky.util.default_devices import (
+    DETECTORS,
+    LINKAM,
+    PANDA,
+    STAMPED_DETECTOR,
 )
 from i22_bluesky.util.settings import (
     get_device_save_dir,
     stamp_temp_pv,
 )
 
-DEFAULT_STAMPED_DETECTOR: StandardDetector = saxs()
 
-
-def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+def save_linkam(panda: HDFPanda = PANDA) -> MsgGenerator:
     yield from save_device(
         panda,
         get_device_save_dir(linkam_plan.__name__),
@@ -40,20 +38,20 @@ def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
 @validate_call(config={"arbitrary_types_allowed": True})
 def linkam_plan(
     trajectory: Annotated[LinkamTrajectory, "Trajectory for the scan to follow."],
-    linkam: Annotated[Linkam3, "Temperature controller."] = DEFAULT_LINKAM,
+    linkam: Annotated[Linkam3, "Temperature controller."] = LINKAM,
     panda: Annotated[
         HDFPanda,
         "Panda with sequence table configured and connected to \
         FastShutter (outa) and each of detectors (outb).",
-    ] = DEFAULT_PANDA,
+    ] = PANDA,
     stamped_detector: Annotated[
         StandardDetector,
         "AreaDetector to configure to stamp the Linkam temperature. \
             Will be automatically added to detectors if not included.",
-    ] = DEFAULT_STAMPED_DETECTOR,
+    ] = STAMPED_DETECTOR,
     detectors: Annotated[
         set[StandardDetector], "Detectors to capture at each temperature value"
-    ] = DEFAULT_DETECTORS,
+    ] = DETECTORS,
     shutter_time: Annotated[
         float, "Time allowed for opening shutter before triggering detectors."
     ] = 0.04,

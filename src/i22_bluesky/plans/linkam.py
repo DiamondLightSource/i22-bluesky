@@ -61,28 +61,13 @@ def linkam_plan(
     """
     Follow a trajectory in temperature, collecting a number of frames either at equally
     spaced positions or while continually scanning. e.g. for 2 segments, the first
-    stepped and the 2nd flown:
-    trajectory start   v             v final segment stop
-                       \\           /
-       stepped segment__\\__       /
-                           \\     /  flown segment
-           1st segment stop \\__ /
+    stepped and the 2nd flown:\n
+    trajectory start   v             v final segment stop\n
+                       \\           /\n
+       stepped segment__\\__       /\n
+                           \\     /  flown segment\n
+           1st segment stop \\__ /\n
         exposures:    xx  xx  xx   1/N seconds
-    Args:
-        start_temp: Initial temperature to reach before starting experiment
-        trajectory: Trajectory to follow: each segment begins at the end of the previous
-        num_frames: Default number of frames at each captured point
-        exposure: Default exposure for each frame
-        linkam: Linkam temperature stage
-        panda: PandA for controlling flyable motion
-        stamped_detector: Detector to stamp temperature PV to H5 file
-        detectors: Other StandardDetectors to capture
-
-    Returns:
-        MsgGenerator: Plan
-
-    Yields:
-        Iterator[MsgGenerator]: Bluesky messages
     """
     flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
     detectors = detectors | {stamped_detector}

@@ -12,10 +12,10 @@ classifiers = [
 ]
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
 dependencies = [
-    "dls_dodal>=1.32",
-    "ophyd_async>=0.6,<0.7",
+    "dls-dodal @ git+https://github.com/DiamondLightSource/dodal.git@main",
+    "ophyd_async",
     "numpy",
-    "pydantic>=2.0",
+    "pydantic",
 ] # Add project dependencies here, e.g. ["click", "numpy"]
 dynamic = ["version"]
 license.file = "LICENSE"

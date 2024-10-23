@@ -90,7 +90,7 @@ def linkam_plan(
     _md.update(metadata or {})
 
     yield from load_panda_config_for_linkam(panda)
-    yield from stamp_temp_pv(linkam, stamped_detector)
+    yield from _stamp_temp_pv(linkam, stamped_detector)
     for det in detectors:
         yield from setup_ndstats_sum(det)
 
@@ -106,7 +106,7 @@ def linkam_plan(
                 if segment.num is not None
                 else step_to_num(start, segment.stop, segment.step),
             )
-            yield from capture_linkam_segment(
+            yield from _capture_linkam_segment(
                 linkam,
                 flyer,
                 detectors,
@@ -210,7 +210,7 @@ class LinkamTrajectory(BaseModel):
         return self
 
 
-def capture_temp(
+def _capture_temp(
     linkam: Linkam3,
     flyer: StandardFlyer,
     detectors: set[StandardDetector],
@@ -235,7 +235,7 @@ def capture_temp(
     )
 
 
-def capture_linkam_segment(
+def _capture_linkam_segment(
     linkam: Linkam3,
     flyer: StandardFlyer,
     detectors: set[StandardDetector],
@@ -257,7 +257,7 @@ def capture_linkam_segment(
     if not fly:
         # Move, stop then collect at each step
         for temp in np.linspace(start, stop, num):
-            yield from capture_temp(
+            yield from _capture_temp(
                 linkam,
                 flyer,
                 detectors,
@@ -288,7 +288,7 @@ def capture_linkam_segment(
         yield from bps.wait(group=linkam_group)
 
 
-def stamp_temp_pv(linkam: Linkam3, stamped_detector: StandardDetector):
+def _stamp_temp_pv(linkam: Linkam3, stamped_detector: StandardDetector):
     assert isinstance(driver := stamped_detector.drv, ADBaseIO)
     yield from setup_ndattributes(
         driver,

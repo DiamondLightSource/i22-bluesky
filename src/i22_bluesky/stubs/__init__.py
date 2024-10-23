@@ -1,13 +1,13 @@
-from .linkam import (
-    LinkamPathSegment,
-    LinkamTrajectory,
-    capture_linkam_segment,
-    capture_temp,
+from .panda import (
+    load_panda_config_for_linkam,
+    load_panda_config_for_stopflow,
+    save_panda_config_for_linkam,
+    save_panda_config_for_stopflow,
 )
 
 __all__ = [
-    "LinkamPathSegment",
-    "LinkamTrajectory",
-    "capture_linkam_segment",
-    "capture_temp",
+    "load_panda_config_for_linkam",
+    "load_panda_config_for_stopflow",
+    "save_panda_config_for_linkam",
+    "save_panda_config_for_stopflow",
 ]

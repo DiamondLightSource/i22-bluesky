@@ -21,7 +21,7 @@ from ophyd_async.fastcs.panda import (
 
 from i22_bluesky.plans import check_detectors_for_stopflow, stopflow
 from i22_bluesky.plans.stopflow import (
-    raise_for_minimum_exposure_times,
+    _raise_for_minimum_exposure_times,
     stopflow_seq_table,
 )
 
@@ -274,7 +274,7 @@ def test_exposure_time_raises(exposure: float):
         detectors.update({mock})
 
     with pytest.raises(KeyError):
-        raise_for_minimum_exposure_times(exposure, detectors)
+        _raise_for_minimum_exposure_times(exposure, detectors)
 
 
 @pytest.mark.parametrize("exposure", [1 / 22.0, 0.05, 0.5, 1.0, 10.0])
@@ -285,7 +285,7 @@ def test_exposure_time_does_not_raise(exposure: float):
         mock.name = name
         detectors.update({mock})
 
-    raise_for_minimum_exposure_times(exposure, detectors)
+    _raise_for_minimum_exposure_times(exposure, detectors)
 
 
 @pytest.mark.parametrize(

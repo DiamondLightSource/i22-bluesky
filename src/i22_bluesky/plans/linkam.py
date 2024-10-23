@@ -5,7 +5,7 @@ from bluesky.utils import MsgGenerator
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
-from ophyd_async.core import StandardDetector, StandardFlyer, load_device, save_device
+from ophyd_async.core import StandardDetector, StandardFlyer
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.plan_stubs import setup_ndstats_sum
 from pydantic import validate_call
@@ -13,25 +13,15 @@ from pydantic import validate_call
 from i22_bluesky.stubs.linkam import (
     LinkamTrajectory,
     capture_linkam_segment,
+    stamp_temp_pv,
 )
+from i22_bluesky.stubs.panda import load_panda_config_for_linkam
 from i22_bluesky.util.default_devices import (
     DETECTORS,
     LINKAM,
     PANDA,
     STAMPED_DETECTOR,
 )
-from i22_bluesky.util.settings import (
-    get_device_save_dir,
-    stamp_temp_pv,
-)
-
-
-def save_linkam(panda: HDFPanda = PANDA) -> MsgGenerator:
-    yield from save_device(
-        panda,
-        get_device_save_dir(linkam_plan.__name__),
-        ignore=["pcap.capture", "data.capture", "data.datasets"],
-    )
 
 
 @attach_data_session_metadata_decorator()
@@ -89,10 +79,7 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    for device in devices:
-        yield from load_device(
-            device, get_device_save_dir(linkam_plan.__name__) / device.__name__
-        )
+    yield from load_panda_config_for_linkam(panda)
     yield from stamp_temp_pv(linkam, stamped_detector)
     for det in detectors:
         yield from setup_ndstats_sum(det)

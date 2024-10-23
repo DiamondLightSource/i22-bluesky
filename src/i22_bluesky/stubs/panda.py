@@ -7,6 +7,8 @@ from ophyd_async.fastcs.panda import HDFPanda
 from i22_bluesky.util.default_devices import PANDA
 
 SAVES_ROOT = Path(__file__).parent.parent.parent
+LINKAM_FOLDER = "linkam"
+STOPFLOW_FOLDER = "stopflow"
 
 
 def get_device_save_dir(plan_name: str) -> Path:
@@ -29,3 +31,19 @@ def load_panda_for_plan(plan_name: str, panda: HDFPanda = PANDA) -> MsgGenerator
         panda,
         get_device_save_dir(plan_name),
     )
+
+
+def save_panda_config_for_stopflow(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from save_panda_for_plan(LINKAM_FOLDER, panda)
+
+
+def load_panda_config_for_stopflow(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from load_panda_for_plan(LINKAM_FOLDER, panda)
+
+
+def save_panda_config_for_linkam(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from save_panda_for_plan(STOPFLOW_FOLDER, panda)
+
+
+def load_panda_config_for_linkam(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from load_panda_for_plan(STOPFLOW_FOLDER, panda)

@@ -149,7 +149,7 @@ def stopflow(
 
     # Check that all detectors supplied can actually go as
     # fast as requested
-    raise_for_minimum_exposure_times(exposure, detectors)
+    _raise_for_minimum_exposure_times(exposure, detectors)
 
     stream_name = "main"
     flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
@@ -181,7 +181,7 @@ def stopflow(
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
         yield from load_panda_config_for_stopflow(panda)
-        yield from prepare_seq_table_flyer_and_det(
+        yield from _prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,
             pre_stop_frames=pre_stop_frames,
@@ -198,7 +198,7 @@ def stopflow(
     yield from inner_stopflow_plan()
 
 
-def prepare_seq_table_flyer_and_det(
+def _prepare_seq_table_flyer_and_det(
     flyer: StandardFlyer[SeqTableInfo],
     detectors: set[StandardDetector],
     pre_stop_frames: int,
@@ -331,7 +331,7 @@ def _stopflow_seq_table(
     return table
 
 
-def raise_for_minimum_exposure_times(
+def _raise_for_minimum_exposure_times(
     exposure: float,
     detectors: set[StandardDetector],
 ) -> None:

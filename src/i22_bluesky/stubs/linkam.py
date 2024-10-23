@@ -6,11 +6,23 @@ from bluesky.utils import MsgGenerator
 from dodal.common.coordination import group_uuid
 from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import StandardDetector, StandardFlyer
+from ophyd_async.epics.adcore import (
+    ADBaseIO,
+    NDAttributePv,
+    NDAttributePvDbrType,
+)
+from ophyd_async.fastcs.panda import HDFPanda
 from ophyd_async.plan_stubs import (
     fly_and_collect,
     prepare_static_seq_table_flyer_and_detectors_with_same_trigger,
+    setup_ndattributes,
 )
 from pydantic import BaseModel, Field, model_validator
+
+from i22_bluesky.stubs.panda import load_panda_for_plan, save_panda_for_plan
+from i22_bluesky.util.default_devices import PANDA
+
+LINKAM_FOLDER = "linkam"
 
 
 class LinkamPathSegment(BaseModel):
@@ -173,3 +185,26 @@ def capture_linkam_segment(
         )
         # Make sure linkam has finished
         yield from bps.wait(group=linkam_group)
+
+
+def stamp_temp_pv(linkam: Linkam3, stamped_detector: StandardDetector):
+    assert isinstance(driver := stamped_detector.drv, ADBaseIO)
+    yield from setup_ndattributes(
+        driver,
+        [
+            NDAttributePv(
+                "Temperature",
+                linkam.temperature,
+                dbrtype=NDAttributePvDbrType.DBR_FLOAT,
+                description="Current linkam temperature",
+            )
+        ],
+    )
+
+
+def save_panda_config_for_stopflow(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from save_panda_for_plan(LINKAM_FOLDER, panda)
+
+
+def load_panda_config_for_stopflow(panda: HDFPanda = PANDA) -> MsgGenerator:
+    yield from load_panda_for_plan(LINKAM_FOLDER, panda)

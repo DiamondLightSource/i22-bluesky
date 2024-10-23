@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Iterable
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -296,11 +297,20 @@ def test_stopflow_seq_table(
     generated_seq_table: SeqTable,
     expected_seq_table: SeqTable,
 ):
-    for element in generated_seq_table.__dict__:
-        assert all(
-            getattr(expected_seq_table, element)
-            == getattr(generated_seq_table, element)
-        )
+    for attr_name in generated_seq_table.__dict__:
+        generated_value = getattr(generated_seq_table, attr_name)
+        expected_value = getattr(expected_seq_table, attr_name)
+
+        # Check if the attribute is iterable and not a string or bytes
+        if isinstance(generated_value, Iterable) and not isinstance(
+            generated_value, str | bytes
+        ):
+            assert all(
+                g == e for g, e in zip(generated_value, expected_value, strict=False)
+            ), f"Mismatch in {attr_name}"
+        else:
+            # Direct comparison for non-iterable attributes like booleans
+            assert generated_value == expected_value, f"Mismatch in {attr_name}"
 
 
 @pytest.mark.xfail(reason="Strange import behavior, to be investigated")

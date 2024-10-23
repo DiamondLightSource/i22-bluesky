@@ -12,10 +12,10 @@ classifiers = [
 ]
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
 dependencies = [
-    "dls_dodal>=1.32",
-    "ophyd_async>=0.6,<0.7",
+    "dls-dodal @ git+https://github.com/DiamondLightSource/dodal.git@main",
+    "ophyd_async",
     "numpy",
-    "pydantic>=2.0",
+    "pydantic",
 ] # Add project dependencies here, e.g. ["click", "numpy"]
 dynamic = ["version"]
 license.file = "LICENSE"
@@ -79,7 +79,6 @@ legacy_tox_ini = """
 skipsdist=True
 
 [testenv:{pre-commit,type-checking,tests}]
-# Don't create a virtualenv for the command, requires tox-direct plugin
 direct = True
 passenv = *
 allowlist_externals =
@@ -88,10 +87,19 @@ allowlist_externals =
     mypy
 commands =
     pre-commit: pre-commit run --all-files --show-diff-on-failure {posargs}
-    type-checking: mypy src tests {posargs}
-    tests: pytest --cov=i22_bluesky --cov-report term --cov-report xml:cov.xml {posargs}
+type-checking: mypy src tests {posargs}
+tests: pytest --cov=i22_bluesky --cov-report term --cov-report xml:cov.xml {posargs}
 """
 
+name = "i22-bluesky"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
+# Don't create a virtualenv for the command, requires tox-direct plugin
 [tool.ruff]
 src = ["src", "tests"]
 line-length = 88

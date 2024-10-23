@@ -57,6 +57,7 @@ from i22_bluesky.util.settings import get_device_save_dir
 DEADTIME_BUFFER = 20e-6
 
 
+# various testing plans
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
@@ -146,6 +147,7 @@ def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     )
 
 
+# main
 def stopflow(
     exposure: float,
     post_stop_frames: int,
@@ -231,6 +233,7 @@ def stopflow(
     yield from inner_stopflow_plan()
 
 
+# plan utils
 def prepare_seq_table_flyer_and_det(
     flyer: StandardFlyer[SeqTableInfo],
     detectors: set[StandardDetector],

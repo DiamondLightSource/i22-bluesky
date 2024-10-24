@@ -23,7 +23,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from bluesky.utils import MsgGenerator
+from dodal.common import MsgGenerator
 from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import (
@@ -44,11 +44,11 @@ from ophyd_async.fastcs.panda import (
 )
 from ophyd_async.plan_stubs import fly_and_collect
 
-from i22_bluesky.util.default_devices import (
-    BASELINE_DEVICES,
-    DETECTORS,
+from i22_bluesky.util.baseline import (
+    DEFAULT_BASELINE_MEASUREMENTS,
+    DEFAULT_DETECTORS,
+    DEFAULT_PANDA,
     FAST_DETECTORS,
-    PANDA,
 )
 from i22_bluesky.util.settings import get_device_save_dir
 
@@ -60,7 +60,7 @@ DEADTIME_BUFFER = 20e-6
 @attach_data_session_metadata_decorator()
 def check_detectors_for_stopflow(
     num_frames: int = 1,
-    devices: set[Readable] = DETECTORS | BASELINE_DEVICES,
+    devices: set[Readable] = DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Take a reading from all devices that are used in the
@@ -78,9 +78,9 @@ def check_detectors_for_stopflow(
 
 
 def check_stopflow_assembly(
-    panda: HDFPanda = PANDA,
-    detectors: set[StandardDetector] = DETECTORS,
-    baseline: set[Readable] = BASELINE_DEVICES,
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Simplified version of the stopflow plan that should catch most
@@ -100,9 +100,9 @@ def check_stopflow_assembly(
 
 
 def check_stopflow_experiment(
-    panda: HDFPanda = PANDA,
-    detectors: set[StandardDetector] = DETECTORS,
-    baseline: set[Readable] = BASELINE_DEVICES,
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     """
     Full test of stopflow experiment functionality with sensible values
@@ -123,9 +123,9 @@ def stress_test_stopflow(
     exposure: float = 1.0 / 250.0,
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
-    panda: HDFPanda = PANDA,
+    panda: HDFPanda = DEFAULT_PANDA,
     detectors: set[StandardDetector] = FAST_DETECTORS,
-    baseline: set[Readable] = BASELINE_DEVICES,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
 ) -> MsgGenerator:
     yield from stopflow(
         exposure=exposure,
@@ -138,7 +138,7 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = PANDA) -> MsgGenerator:
+def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
     yield from save_device(
         panda,
         get_device_save_dir(stopflow.__name__),
@@ -151,9 +151,9 @@ def stopflow(
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = PANDA,
-    detectors: set[StandardDetector] = DETECTORS,
-    baseline: set[Readable] = BASELINE_DEVICES,
+    panda: HDFPanda = DEFAULT_PANDA,
+    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
+    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
     metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """

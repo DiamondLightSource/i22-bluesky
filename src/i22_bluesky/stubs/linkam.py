@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import bluesky.plan_stubs as bps
 import numpy as np
-from bluesky.utils import MsgGenerator
+from dodal.common import MsgGenerator
 from dodal.common.coordination import group_uuid
 from dodal.devices.linkam3 import Linkam3
 from ophyd_async.core import StandardDetector, StandardFlyer

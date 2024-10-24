@@ -1,9 +1,9 @@
 import asyncio
 from dataclasses import dataclass
 
-from dodal.common.maths import in_micros
+from dls_bluesky_core.core import in_micros
 from ophyd_async.core import DetectorTrigger, TriggerInfo, TriggerLogic, wait_for_value
-from ophyd_async.fastcs.panda import SeqBlock, SeqTable, TimeUnits
+from ophyd_async.fastcs.panda import SeqBlock, SeqTable
 
 
 @dataclass
@@ -51,7 +51,7 @@ class PandARepeatedTriggerLogic(TriggerLogic[RepeatedTrigger]):
             + SeqTable.row(time2=in_micros(self.shutter_time)),
         )
         await asyncio.gather(
-            self.seq.prescale_units.set(TimeUnits.us),
+            self.seq.prescale_units.set("us"),
             self.seq.enable.set("ZERO"),
         )
         await asyncio.gather(

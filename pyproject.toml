@@ -13,7 +13,7 @@ classifiers = [
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
 dependencies = [
     "dls_dodal>=1.32",
-    "ophyd_async>=0.6,<0.7",
+    "ophyd_async>=0.6,<0.8",
     "numpy",
     "pydantic>=2.0",
 ]

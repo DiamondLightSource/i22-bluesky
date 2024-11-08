@@ -16,15 +16,12 @@
 # As such the implementation is:
 # start acquisition -> acquire n frames -> wait for trigger -> acquire m frames
 # where n can be 0.
-
 from typing import Any
 
 import bluesky.plan_stubs as bps
-import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from dodal.common import MsgGenerator
-from dodal.devices.tetramm import TetrammDetector
+from bluesky.utils import MsgGenerator
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
 from ophyd_async.core import (
     DetectorTrigger,
@@ -32,8 +29,6 @@ from ophyd_async.core import (
     StandardFlyer,
     TriggerInfo,
     in_micros,
-    load_device,
-    save_device,
 )
 from ophyd_async.fastcs.panda import (
     HDFPanda,
@@ -42,52 +37,31 @@ from ophyd_async.fastcs.panda import (
     SeqTrigger,
     StaticSeqTableTriggerLogic,
 )
-from ophyd_async.plan_stubs import fly_and_collect
+from ophyd_async.plan_stubs import ensure_connected, fly_and_collect
 
-from i22_bluesky.util.baseline import (
-    DEFAULT_BASELINE_MEASUREMENTS,
-    DEFAULT_DETECTORS,
-    DEFAULT_PANDA,
+from i22_bluesky.stubs.panda import load_panda_config_for_stopflow
+from i22_bluesky.util.default_devices import (
+    BASELINE_DEVICES,
+    DETECTORS,
     FAST_DETECTORS,
+    PANDA,
 )
-from i22_bluesky.util.settings import get_device_save_dir
 
 #: Buffer added to deadtime to handle minor discrepencies between detector
 #: and panda clocks
 DEADTIME_BUFFER = 20e-6
 
 
-@attach_data_session_metadata_decorator()
-def check_detectors_for_stopflow(
-    num_frames: int = 1,
-    devices: set[Readable] = DEFAULT_DETECTORS | DEFAULT_BASELINE_MEASUREMENTS,
-) -> MsgGenerator:
-    """
-    Take a reading from all devices that are used in the
-    stopflow plan by default
-    """
-
-    # Tetramms do not support software triggering
-    software_triggerable_devices = {
-        device for device in devices if not isinstance(device, TetrammDetector)
-    }
-    yield from bp.count(
-        tuple(software_triggerable_devices),
-        num=num_frames,
-    )
-
-
 def check_stopflow_assembly(
-    panda: HDFPanda = DEFAULT_PANDA,
-    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
-    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
+    panda: HDFPanda = PANDA,
+    detectors: set[StandardDetector] = DETECTORS,
+    baseline: set[Readable] = BASELINE_DEVICES,
 ) -> MsgGenerator:
     """
     Simplified version of the stopflow plan that should catch most
     wiring/assembly/detector setup errors, does not require triggering a stop flow,
     that can be tested with the main plan.
     """
-
     yield from stopflow(
         exposure=0.1,
         post_stop_frames=0,
@@ -100,9 +74,9 @@ def check_stopflow_assembly(
 
 
 def check_stopflow_experiment(
-    panda: HDFPanda = DEFAULT_PANDA,
-    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
-    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
+    panda: HDFPanda = PANDA,
+    detectors: set[StandardDetector] = DETECTORS,
+    baseline: set[Readable] = BASELINE_DEVICES,
 ) -> MsgGenerator:
     """
     Full test of stopflow experiment functionality with sensible values
@@ -123,9 +97,9 @@ def stress_test_stopflow(
     exposure: float = 1.0 / 250.0,
     post_stop_frames: int = 2000,
     pre_stop_frames: int = 8000,
-    panda: HDFPanda = DEFAULT_PANDA,
+    panda: HDFPanda = PANDA,
     detectors: set[StandardDetector] = FAST_DETECTORS,
-    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
+    baseline: set[Readable] = BASELINE_DEVICES,
 ) -> MsgGenerator:
     yield from stopflow(
         exposure=exposure,
@@ -138,22 +112,14 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    yield from save_device(
-        panda,
-        get_device_save_dir(stopflow.__name__),
-        ignore=["pcap.capture", "data.capture", "data.datasets"],
-    )
-
-
 def stopflow(
     exposure: float,
     post_stop_frames: int,
     pre_stop_frames: int = 0,
     shutter_time: float = 4e-3,
-    panda: HDFPanda = DEFAULT_PANDA,
-    detectors: set[StandardDetector] = DEFAULT_DETECTORS,
-    baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
+    panda: HDFPanda = PANDA,
+    detectors: set[StandardDetector] = DETECTORS,
+    baseline: set[Readable] = BASELINE_DEVICES,
     metadata: dict[str, Any] | None = None,
 ) -> MsgGenerator:
     """
@@ -179,10 +145,11 @@ def stopflow(
     Yields:
             Iterator[MsgGenerator]: Bluesky messages
     """
+    yield from ensure_connected(panda, *detectors, *baseline)
 
     # Check that all detectors supplied can actually go as
     # fast as requested
-    raise_for_minimum_exposure_times(exposure, detectors)
+    _raise_for_minimum_exposure_times(exposure, detectors)
 
     stream_name = "main"
     flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
@@ -213,8 +180,8 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load_device(panda, get_device_save_dir(stopflow.__name__))
-        yield from prepare_seq_table_flyer_and_det(
+        yield from load_panda_config_for_stopflow(panda)
+        yield from _prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,
             pre_stop_frames=pre_stop_frames,
@@ -231,7 +198,7 @@ def stopflow(
     yield from inner_stopflow_plan()
 
 
-def prepare_seq_table_flyer_and_det(
+def _prepare_seq_table_flyer_and_det(
     flyer: StandardFlyer[SeqTableInfo],
     detectors: set[StandardDetector],
     pre_stop_frames: int,
@@ -277,7 +244,7 @@ def prepare_seq_table_flyer_and_det(
     )
 
     # Generate a seq table
-    table = stopflow_seq_table(
+    table = _stopflow_seq_table(
         pre_stop_frames,
         post_stop_frames,
         exposure,
@@ -294,7 +261,7 @@ def prepare_seq_table_flyer_and_det(
     yield from bps.wait(group="prep")
 
 
-def stopflow_seq_table(
+def _stopflow_seq_table(
     pre_stop_frames: int,
     post_stop_frames: int,
     exposure: float,
@@ -364,7 +331,7 @@ def stopflow_seq_table(
     return table
 
 
-def raise_for_minimum_exposure_times(
+def _raise_for_minimum_exposure_times(
     exposure: float,
     detectors: set[StandardDetector],
 ) -> None:

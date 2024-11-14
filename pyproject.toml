@@ -11,7 +11,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
-dependencies = ["dls_dodal>=1.31", "numpy", "pydantic>=2.0", "ophyd_async>=0.6"]
+dependencies = [
+    "dls_dodal>=1.32",
+    "ophyd_async>=0.6,<0.7",
+    "numpy",
+    "pydantic>=2.0",
+]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"

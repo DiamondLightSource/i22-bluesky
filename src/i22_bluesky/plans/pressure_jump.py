@@ -1,26 +1,29 @@
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import bluesky.preprocessors as bpp
-import numpy as np
 from bluesky.protocols import Readable
 from dodal.common import MsgGenerator, inject
 from dodal.devices.tetramm import TetrammDetector
 from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
-from ophyd_async.core import HardwareTriggeredFlyable
-from ophyd_async.core.detector import DetectorTrigger, StandardDetector, TriggerInfo
-from ophyd_async.core.device_save_loader import load_device
-from ophyd_async.core.utils import in_micros
-from ophyd_async.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.panda._table import (
+from ophyd_async.core import (
+    DetectorTrigger,
+    StandardDetector,
+    StandardFlyer,
+    TriggerInfo,
+    in_micros,
+    load_device,
+)
+from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
+from ophyd_async.fastcs.panda._table import (
     SeqTable,
     SeqTableRow,
     SeqTrigger,
     seq_table_from_rows,
 )
-from ophyd_async.panda._trigger import SeqTableInfo
+from ophyd_async.fastcs.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import (
     fly_and_collect,
 )
@@ -124,7 +127,7 @@ def pressure_jump(
     raise_for_minimum_exposure_times(exposure, detectors)
 
     stream_name = "main"
-    flyer = HardwareTriggeredFlyable(StaticSeqTableTriggerLogic(panda.seq[1]))
+    flyer = StandardFlyer(StaticSeqTableTriggerLogic(panda.seq[1]))
     devices = {flyer, panda} | detectors | baseline
     plan_args = {
         "start_pressure": start_pressure,
@@ -172,7 +175,7 @@ def pressure_jump(
 
 # plan utils
 def prepare_seq_table_flyer_and_det(
-    flyer: HardwareTriggeredFlyable[SeqTableInfo],
+    flyer: StandardFlyer[SeqTableInfo],
     detectors: set[StandardDetector],
     pre_jump_frames: int,
     post_jump_frames: int,

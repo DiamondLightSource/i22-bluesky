@@ -16,7 +16,7 @@ dependencies = [
     "ophyd_async>=0.6,<0.7",
     "numpy",
     "pydantic>=2.0",
-] # Add project dependencies here, e.g. ["click", "numpy"]
+]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"

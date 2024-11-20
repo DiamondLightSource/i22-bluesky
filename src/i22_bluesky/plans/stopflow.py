@@ -23,9 +23,9 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from dodal.common import MsgGenerator
+from bluesky.utils import MsgGenerator
 from dodal.devices.tetramm import TetrammDetector
-from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
+from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import (
     DetectorTrigger,
     StandardDetector,

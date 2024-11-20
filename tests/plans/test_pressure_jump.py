@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 import numpy as np
-from dodal.common import MsgGenerator
+from bluesky.utils import MsgGenerator
 
 from i22_bluesky.plans.pressure_jump import pressure_jump
 

@@ -23,7 +23,7 @@ def stamp_temp_pv(linkam: Linkam3, stamped_detector: StandardDetector):
         [
             NDAttributePv(
                 "Temperature",
-                linkam.temperature,
+                linkam.temp,
                 dbrtype=NDAttributePvDbrType.DBR_FLOAT,
                 description="Current linkam temperature",
             )

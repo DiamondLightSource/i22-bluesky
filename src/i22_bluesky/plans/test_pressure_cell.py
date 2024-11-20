@@ -1,9 +1,10 @@
 import bluesky.plan_stubs as bps
-from dodal.common import MsgGenerator, inject
+from bluesky.utils import MsgGenerator
+from dodal.common import inject
 from dodal.devices.pressure_jump_cell import (
     FastValveControlRequest,
     PressureJumpCell,
-    PumpMotorControlRequest,
+    PumpMotorDirectionState,
 )
 
 DEFAULT_PRESSURE_CELL = inject("high_pressure_xray_cell")
@@ -42,7 +43,7 @@ def lower_pressure(
     )
     yield pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
     # the pressure lowering itself
-    yield pressure_cell.pump.pump_motor_direction(PumpMotorControlRequest.REVERSE)
+    yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.REVERSE)
     yield pressure_cell.pump.pump_position.set(target_pressure)
 
     # in intervals check the pressure until reaches the target pressure
@@ -67,7 +68,7 @@ def raise_pressure(
     yield pressure_cell.all_valves_control.set_valve(5, FastValveControlRequest.OPEN)
 
     # the pressure raising itself
-    yield pressure_cell.pump.pump_motor_direction(PumpMotorControlRequest.FORWARD)
+    yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.FORWARD)
     pressure_cell.pump.pump_position.set(target_pressure)
     readout = yield pressure_cell.pressure_transducers[3].omron_pressure.read()
 

@@ -5,9 +5,10 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
-from dodal.common import MsgGenerator, inject
+from bluesky.utils import MsgGenerator
+from dodal.common import inject
 from dodal.devices.tetramm import TetrammDetector
-from dodal.plans.data_session_metadata import attach_data_session_metadata_decorator
+from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import (
     DetectorTrigger,
     StandardDetector,
@@ -19,9 +20,7 @@ from ophyd_async.core import (
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.fastcs.panda._table import (
     SeqTable,
-    SeqTableRow,
     SeqTrigger,
-    seq_table_from_rows,
 )
 from ophyd_async.fastcs.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import (
@@ -265,52 +264,42 @@ def pressure_jump_seq_table(
     total_gate_time = (pre_jump_frames + post_jump_frames) * (exposure + deadtime)
     pre_delay = max(period - 2 * shutter_time - total_gate_time, 0)
 
-    rows = [
-        # Wait for pre-delay then open shutter
-        SeqTableRow(
-            time1=in_micros(pre_delay),
-            time2=in_micros(shutter_time),
-            outa2=True,
-        )
-    ]
+    # Wait for pre-delay then open shutter
+    table = SeqTable(
+        time1=in_micros(pre_delay), time2=in_micros(shutter_time), outa2=True
+    )
 
     # Keeping shutter open, do n triggers
     if pre_jump_frames > 0:
-        rows.append(
-            SeqTableRow(
-                repeats=pre_jump_frames,
-                time1=in_micros(exposure),
-                outa1=True,
-                outb1=True,
-                time2=in_micros(deadtime),
-                outa2=True,
-            )
+        table += SeqTable(
+            repeats=pre_jump_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
         )
     # todo not sure how do we get the trigger exactly
     # Do m triggers after BITA=1
     if post_jump_frames > 0:
-        rows.append(
-            SeqTableRow(
-                trigger=SeqTrigger.BITA_1,
-                repeats=1,
+        table += SeqTable(
+            trigger=SeqTrigger.BITA_1,
+            repeats=1,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime),
+            outa2=True,
+        )
+        if post_jump_frames > 1:
+            table += SeqTable(
+                repeats=post_jump_frames - 1,
                 time1=in_micros(exposure),
                 outa1=True,
                 outb1=True,
                 time2=in_micros(deadtime),
                 outa2=True,
             )
-        )
-        if post_jump_frames > 1:
-            rows.append(
-                SeqTableRow(
-                    repeats=post_jump_frames - 1,
-                    time1=in_micros(exposure),
-                    outa1=True,
-                    outb1=True,
-                    time2=in_micros(deadtime),
-                    outa2=True,
-                )
-            )
     # Add the shutter close
-    rows.append(SeqTableRow(time2=in_micros(shutter_time)))
-    return seq_table_from_rows(*rows)
+    table += SeqTable(time2=in_micros(shutter_time))
+    return table

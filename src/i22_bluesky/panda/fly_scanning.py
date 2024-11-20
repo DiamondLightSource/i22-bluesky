@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 
-from dls_bluesky_core.core import in_micros
+from dodal.common.maths import in_micros
 from ophyd_async.core import DetectorTrigger, TriggerInfo, TriggerLogic, wait_for_value
 from ophyd_async.fastcs.panda import SeqBlock, SeqTable
 

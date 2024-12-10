@@ -7,7 +7,7 @@ from .stopflow import (
     stopflow,
     stress_test_stopflow,
 )
-from .test_pressure_cell import make_popping_sound, test_pressure_cell
+from .test_pressure_cell import make_popping_sound
 
 __all__ = [
     "linkam_plan",

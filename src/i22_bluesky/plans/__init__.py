@@ -1,4 +1,9 @@
 from .linkam import linkam_plan, save_linkam
+from .mirror_optimisation import (
+    bimorph_cleanup,
+    bimorph_mirror_data_collection,
+    mirror_output,
+)
 from .stopflow import (
     check_detectors_for_stopflow,
     check_stopflow_assembly,
@@ -20,4 +25,7 @@ __all__ = [
     "check_stopflow_experiment",
     "save_stopflow",
     "stress_test_stopflow",
+    "bimorph_mirror_data_collection",
+    "bimorph_cleanup",
+    "mirror_output",
 ]

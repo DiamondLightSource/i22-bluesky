@@ -79,8 +79,7 @@ def next_single_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     vfm_next = {**vfm_prev}
 
     rand_channel = get_random_channel(vfm)
-    # step = rand.uniform(-20, 20)
-    step = rand.uniform(-200, 200)
+    step = rand.uniform(-20, 20)
     vfm_prev[rand_channel] = yield from bps.rd(vfm.channels[rand_channel])
     if abs(vfm_prev[rand_channel] + step) >= 500:
         vfm_next[rand_channel] = vfm_prev[rand_channel] - step
@@ -97,8 +96,7 @@ def next_single_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     hfm_next = {**hfm_prev}
 
     rand_channel = get_random_channel(hfm)
-    # step = rand.uniform(-20, 20)
-    step = rand.uniform(-200, 200)
+    step = rand.uniform(-20, 20)
     hfm_prev[rand_channel] = yield from bps.rd(hfm.channels[rand_channel])
     if abs(hfm_prev[rand_channel] + step) >= 500:
         hfm_next[rand_channel] = hfm_prev[rand_channel] - step
@@ -127,15 +125,6 @@ def next_mixed_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
 
     vfm_prev = {}
     vfm_next = {}
-    # for index, channel in vfm.channels.items():
-    #     if index in range(vx, vy):
-    #         step = rand.uniform(-20, 20)
-    #         vfm_prev[index] = yield from bps.rd(channel)
-    #         if abs(vfm_prev[index] + step) >= 500:
-    #             vfm_next[index] = vfm_prev[index] - step
-    #         else:
-    #             vfm_next[index] = vfm_prev[index] + step
-
     for index, channel in vfm.channels.items():
         if index in range(vx, vy):
             step = rand.uniform(-20, 20)
@@ -160,17 +149,6 @@ def next_mixed_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
                 hfm_next[index] = hfm_prev[index] + step
 
     evaluate_volt_diff_all_channels(hfm_next)
-
-    print("******")
-    print("DEBUG")
-    print(range(vx, vy))
-    print()
-    print(range(hx, hy))
-    print()
-    print(vfm_next)
-    print()
-    print(hfm_next)
-    print("******")
 
     yield from bps.mv(vfm, vfm_next)
     yield from bps.mv(hfm, hfm_next)
@@ -201,35 +179,58 @@ def bimorph_mirror_data_collection(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
     def innerplan():
+        num = rand.uniform(0, 9)
         # Do split 40% of the time
-        # if rand.uniform(0, 9) <= 5:
-        #    for _ in range(data_collection_size):
-        #        # 60%
-        #        if rand.uniform(0, 9) <= 7:
-        #            yield from next_mixed_channel(vfm, hfm)
-        #        elif rand.uniform(0, 9) <= 6:
-        #            # 20%
-        #            yield from next_single_channel(vfm, hfm)
-        #        else:
-        #            # 20%
-        #            yield from next_all_channels(vfm, hfm)
-        #        yield from bps.trigger_and_read(devices)  # data out
-        # 20%
-        if rand.uniform(0, 9) <= 9:  # 7
+        if num <= 3:
             for _ in range(data_collection_size):
-                # yield from next_all_channels(vfm, hfm)
+                num = rand.uniform(0, 9)
+                if num <= 5:
+                    # 60%
+                    yield from next_mixed_channel(vfm, hfm)
+                elif num == 6 or 7:
+                    # 20%
+                    yield from next_single_channel(vfm, hfm)
+                else:
+                    # 20%
+                    yield from next_all_channels(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+        # 20%
+        elif num == 4 or 5:
+            for _ in range(data_collection_size):
                 yield from next_single_channel(vfm, hfm)
                 yield from bps.trigger_and_read(devices)
         # 20%
-        # elif rand.uniform(0, 9) <= 9:
-        #    for _ in range(data_collection_size):
-        #        yield from next_mixed_channel(vfm, hfm)
-        #        yield from bps.trigger_and_read(devices)
-        ## 20%
-        # else:
-        #    for _ in range(data_collection_size):
-        #        yield from next_single_channel(vfm, hfm)
-        #        yield from bps.trigger_and_read(devices)
+        elif num == 6 or 7:
+            for _ in range(data_collection_size):
+                yield from next_mixed_channel(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+        # 20%
+        else:
+            for _ in range(data_collection_size):
+                yield from next_single_channel(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+
+    yield from innerplan()
+
+
+@attach_data_session_metadata_decorator()
+def testing_bimorph_mirror_data_collection(
+    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+) -> MsgGenerator:
+    """
+    plan - move the vertical and horizonal bimorph mirrors according to
+    a chosen stub.
+
+    Used to test stubs.
+    """
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator(devices)
+    @bpp.run_decorator()
+    def innerplan():
+        for _ in range(data_collection_size):
+            yield from next_single_channel(vfm, hfm)
+            yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
 
@@ -263,20 +264,5 @@ def mirror_output(mirror: BimorphMirror) -> MsgGenerator:
     @bpp.run_decorator()
     def innerplan():
         yield from bps.trigger_and_read([mirror])
-
-    yield from innerplan()
-
-
-#
-@attach_data_session_metadata_decorator()
-def optimise_bimorph(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
-) -> MsgGenerator:
-    devices = [vfm, hfm, *detectors]
-
-    @bpp.stage_decorator(devices)
-    @bpp.run_decorator()
-    def innerplan():
-        pass
 
     yield from innerplan()

@@ -6,6 +6,7 @@ from bluesky.utils import MsgGenerator
 from dodal.devices.bimorph_mirror import BimorphMirror
 from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import StandardDetector
+from ophyd_async.plan_stubs import ensure_connected
 
 # 3000 iterations of the Adam algorithm per fold
 
@@ -175,6 +176,7 @@ def bimorph_mirror_data_collection(
     - Move all channels sometimes, otherwise alter single channels
     """
     devices = [vfm, hfm, *detectors]
+    yield from ensure_connected(*devices)
 
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
@@ -224,6 +226,7 @@ def testing_bimorph_mirror_data_collection(
     Used to test stubs.
     """
     devices = [vfm, hfm, *detectors]
+    yield from ensure_connected(*devices)
 
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()

@@ -30,7 +30,6 @@ __all__ = [
     "check_stopflow_experiment",
     "save_stopflow",
     "stress_test_stopflow",
-    "bimorph_mirror_data_collection",
     "mirror_output",
     "testing_bimorph_mirror_data_collection",
     "mixed_bimorph_mirror_data_collection",

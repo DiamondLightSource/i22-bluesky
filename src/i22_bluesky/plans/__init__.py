@@ -1,7 +1,6 @@
 from .linkam import linkam_plan, save_linkam
 from .mirror_optimisation import (
     all_bimorph_mirror_data_collection,
-    bimorph_cleanup,
     mirror_output,
     mixed_bimorph_mirror_data_collection,
     random_bimorph_mirror_data_collection,
@@ -32,7 +31,6 @@ __all__ = [
     "save_stopflow",
     "stress_test_stopflow",
     "bimorph_mirror_data_collection",
-    "bimorph_cleanup",
     "mirror_output",
     "testing_bimorph_mirror_data_collection",
     "mixed_bimorph_mirror_data_collection",

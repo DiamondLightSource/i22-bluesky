@@ -37,7 +37,7 @@ def next_all_channels(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     vfm_prev = {}
     vfm_next = {}
     for index, channel in vfm.channels.items():
-        step = rand.uniform(-20, 20)
+        step = int(rand.uniform(-20, 20))
         vfm_prev[index] = yield from bps.rd(channel)
         if abs(vfm_prev[index] + step) >= 500:
             vfm_next[index] = vfm_prev[index] - step
@@ -50,7 +50,7 @@ def next_all_channels(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     hfm_prev = {}
     hfm_next = {}
     for index, channel in hfm.channels.items():
-        step = rand.uniform(-20, 20)
+        step = int(rand.uniform(-20, 20))
         hfm_prev[index] = yield from bps.rd(channel)
         if abs(hfm_prev[index] + step) >= 500:
             hfm_next[index] = hfm_prev[index] - step
@@ -79,7 +79,7 @@ def next_single_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     vfm_next = {**vfm_prev}
 
     rand_channel = get_random_channel(vfm)
-    step = rand.uniform(-20, 20)
+    step = int(rand.uniform(-20, 20))
     vfm_prev[rand_channel] = yield from bps.rd(vfm.channels[rand_channel])
     if abs(vfm_prev[rand_channel] + step) >= 500:
         vfm_next[rand_channel] = vfm_prev[rand_channel] - step
@@ -96,7 +96,7 @@ def next_single_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     hfm_next = {**hfm_prev}
 
     rand_channel = get_random_channel(hfm)
-    step = rand.uniform(-20, 20)
+    step = int(rand.uniform(-20, 20))
     hfm_prev[rand_channel] = yield from bps.rd(hfm.channels[rand_channel])
     if abs(hfm_prev[rand_channel] + step) >= 500:
         hfm_next[rand_channel] = hfm_prev[rand_channel] - step
@@ -127,7 +127,7 @@ def next_mixed_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     vfm_next = {}
     for index, channel in vfm.channels.items():
         if index in range(vx, vy):
-            step = rand.uniform(-20, 20)
+            step = int(rand.uniform(-20, 20))
             vfm_prev[index] = yield from bps.rd(channel)
             if abs(vfm_prev[index] + step) >= 500:
                 vfm_next[index] = vfm_prev[index] - step
@@ -141,7 +141,7 @@ def next_mixed_channel(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     hfm_next = {}
     for index, channel in hfm.channels.items():
         if index in range(hx, hy):
-            step = rand.uniform(-20, 20)
+            step = int(rand.uniform(-20, 20))
             hfm_prev[index] = yield from bps.rd(channel)
             if abs(hfm_prev[index] + step) >= 500:
                 hfm_next[index] = hfm_prev[index] - step
@@ -158,12 +158,62 @@ def good_mirror_config(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     """
     stub - return bimorph mirror to known configuration
     """
-    yield from bps.mv(vfm, {v: rand.random(-500, 500) for v in vfm.channels.keys()})
-    yield from bps.mv(hfm, {v: rand.random(-500, 500) for v in hfm.channels.keys()})
+    good_position_h = {
+        1: -214,
+        2: -320,
+        3: -317,
+        4: -324,
+        5: -382,
+        6: -272,
+        7: -284,
+        8: -232,
+        9: -322,
+        10: -428,
+        11: -214,
+        12: -216,
+    }
+
+    good_position_v = {
+        1: 500,
+        2: 500,
+        3: 91,
+        4: -203,
+        5: 20,
+        6: 33,
+        7: -53,
+        8: -44,
+        9: -196,
+        10: -142,
+        11: -214,
+        12: -454,
+        13: -89,
+        14: -35,
+        15: -129,
+        16: -150,
+        17: -83,
+        18: -93,
+        19: 104,
+        20: -305,
+        21: -500,
+        22: -29,
+        23: -33,
+        24: -52,
+        25: 128,
+        26: 11,
+        27: -24,
+        28: 139,
+        29: -198,
+        30: -9,
+        31: 144,
+        32: 380,
+    }
+
+    yield from bps.mv(hfm, good_position_h)
+    yield from bps.mv(vfm, good_position_v)
 
 
 @attach_data_session_metadata_decorator()
-def bimorph_mirror_data_collection(
+def random_bimorph_mirror_data_collection(
     vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
 ) -> MsgGenerator:
     """
@@ -179,11 +229,11 @@ def bimorph_mirror_data_collection(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator()
     def innerplan():
-        num = rand.uniform(0, 9)
+        num = int(rand.uniform(0, 9))
         # Do split 40% of the time
         if num <= 3:
             for _ in range(data_collection_size):
-                num = rand.uniform(0, 9)
+                num = int(rand.uniform(0, 9))
                 if num <= 5:
                     # 60%
                     yield from next_mixed_channel(vfm, hfm)
@@ -211,6 +261,7 @@ def bimorph_mirror_data_collection(
                 yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
 
 
 @attach_data_session_metadata_decorator()
@@ -233,6 +284,7 @@ def testing_bimorph_mirror_data_collection(
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
 
 
 @attach_data_session_metadata_decorator()
@@ -252,6 +304,162 @@ def bimorph_cleanup(
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
+
+
+def voltage_held_over_time(
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+    settle_time: float = 50,
+) -> MsgGenerator:
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator(devices)
+    @bpp.run_decorator()
+    def innerplan():
+        num = int(rand.uniform(0, 9))
+        # Do split 40% of the time
+        if num <= 3:
+            for _ in range(data_collection_size):
+                num = int(rand.uniform(0, 9))
+                if num <= 5:
+                    # 60%
+                    yield from next_mixed_channel(vfm, hfm)
+                elif num == 6 or 7:
+                    # 20%
+                    yield from next_single_channel(vfm, hfm)
+                else:
+                    # 20%
+                    yield from next_all_channels(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+                yield from bps.sleep(settle_time)
+        # 20%
+        elif num == 4 or 5:
+            for _ in range(data_collection_size):
+                yield from next_single_channel(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+                yield from bps.sleep(settle_time)
+        # 20%
+        elif num == 6 or 7:
+            for _ in range(data_collection_size):
+                yield from next_mixed_channel(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+                yield from bps.sleep(settle_time)
+        # 20%
+        else:
+            for _ in range(data_collection_size):
+                yield from next_single_channel(vfm, hfm)
+                yield from bps.trigger_and_read(devices)
+                yield from bps.sleep(settle_time)
+
+    yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
+
+
+#########################################################
+# New
+#########################################################
+
+
+@attach_data_session_metadata_decorator()
+def mixed_bimorph_mirror_data_collection(
+    mirror: BimorphMirror,
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+) -> MsgGenerator:
+    """
+    Adjust a varying number of bimorph mirror channels for each
+    round of data collection.
+    """
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator([mirror])
+    @bpp.run_decorator()
+    def innerplan():
+        for _ in range(data_collection_size):
+            num = int(rand.uniform(0, 9))
+            if num <= 5:
+                # 60%
+                yield from next_mixed_channel(vfm, hfm)
+            elif num == 6 or 7:
+                # 20%
+                yield from next_single_channel(vfm, hfm)
+            else:
+                # 20%
+                yield from next_all_channels(vfm, hfm)
+            yield from bps.trigger_and_read(devices)
+
+    yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
+
+
+@attach_data_session_metadata_decorator()
+def single_bimorph_mirror_data_collection(
+    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+) -> MsgGenerator:
+    """
+    Adjust a single bimorph mirror channel for each round
+    of data collection.
+    """
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator(devices)
+    @bpp.run_decorator()
+    def innerplan():
+        for _ in range(data_collection_size):
+            yield from next_single_channel(vfm, hfm)
+            yield from bps.trigger_and_read(devices)
+
+    yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
+
+
+@attach_data_session_metadata_decorator()
+def all_bimorph_mirror_data_collection(
+    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+) -> MsgGenerator:
+    """
+    Adjust all bimorph mirror channels for each round
+    of data collection.
+    """
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator(devices)
+    @bpp.run_decorator()
+    def innerplan():
+        for _ in range(data_collection_size):
+            yield from next_all_channels(vfm, hfm)
+            yield from bps.trigger_and_read(devices)
+
+    yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
+
+
+@attach_data_session_metadata_decorator()
+def varied_bimorph_mirror_data_collection(
+    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+) -> MsgGenerator:
+    """
+    Adjust a random number of bimorph mirror channels
+    for each round of data collection.
+    """
+    devices = [vfm, hfm, *detectors]
+
+    @bpp.stage_decorator(devices)
+    @bpp.run_decorator()
+    def innerplan():
+        for _ in range(data_collection_size):
+            yield from next_mixed_channel(vfm, hfm)
+            yield from bps.trigger_and_read(devices)
+
+    yield from innerplan()
+    yield from good_mirror_config(vfm, hfm)
+
+
+#########################################################
+# Template
+#########################################################
 
 
 @attach_data_session_metadata_decorator()

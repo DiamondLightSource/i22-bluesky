@@ -5,7 +5,7 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import MsgGenerator
 from dodal.devices.bimorph_mirror import BimorphMirror
 from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
-from ophyd_async.core import StandardDetector
+from ophyd_async.core import SignalR, StandardDetector
 
 # 3000 iterations of the Adam algorithm per fold
 
@@ -212,9 +212,29 @@ def good_mirror_config(vfm: BimorphMirror, hfm: BimorphMirror) -> MsgGenerator:
     yield from bps.mv(vfm, good_position_v)
 
 
+def ensure_beam_readiness(
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
+) -> MsgGenerator:
+    time_until_top_up: int = yield from bps.rd(top_up_countdown)
+    while (time_until_top_up >= 580 or time_until_top_up <= 15):
+        next_sleep = time_until_top_up - 580 + 1 if time_until_top_up >= 580 else 15
+        yield from bps.sleep(next_sleep)
+        time_until_top_up = yield from bps.rd(top_up_countdown)
+    current_beam_intensity: float = yield from bps.rd(beam_intensity)
+    while current_beam_intensity < 1e-5:
+        yield from bps.sleep(15)
+        current_beam_intensity = yield from bps.rd(beam_intensity)
+
+
+
 @attach_data_session_metadata_decorator()
 def random_bimorph_mirror_data_collection(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     plan - move the vertical and horizonal bimorph mirrors by random amounts
@@ -223,6 +243,7 @@ def random_bimorph_mirror_data_collection(
     - Just single channel movements
     - Move all channels at once
     - Move all channels sometimes, otherwise alter single channels
+
     """
     devices = [vfm, hfm, *detectors]
 
@@ -243,21 +264,25 @@ def random_bimorph_mirror_data_collection(
                 else:
                     # 20%
                     yield from next_all_channels(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
         # 20%
         elif num == 4 or 5:
             for _ in range(data_collection_size):
                 yield from next_single_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
         # 20%
         elif num == 6 or 7:
             for _ in range(data_collection_size):
                 yield from next_mixed_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
         # 20%
         else:
             for _ in range(data_collection_size):
                 yield from next_single_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
@@ -266,7 +291,11 @@ def random_bimorph_mirror_data_collection(
 
 @attach_data_session_metadata_decorator()
 def testing_bimorph_mirror_data_collection(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     plan - move the vertical and horizonal bimorph mirrors according to
@@ -281,35 +310,38 @@ def testing_bimorph_mirror_data_collection(
     def innerplan():
         for _ in range(data_collection_size):
             yield from next_single_channel(vfm, hfm)
+            yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
     yield from good_mirror_config(vfm, hfm)
 
 
-@attach_data_session_metadata_decorator()
-def bimorph_cleanup(
-    mirror: BimorphMirror, detectors: set[StandardDetector]
-) -> MsgGenerator:
-    """
-    plan - return to known mirror configuration
-    """
-    devices = [mirror, *detectors]
+# @attach_data_session_metadata_decorator()
+# def bimorph_cleanup(
+#     mirror: BimorphMirror, detectors: set[StandardDetector]
+# ) -> MsgGenerator:
+#     """
+#     plan - return to known mirror configuration
+#     """
+#     devices = [mirror, *detectors]
 
-    @bpp.stage_decorator(devices)
-    @bpp.run_decorator()
-    def innerplan():
-        for _ in range(data_collection_size):
-            yield from good_mirror_config(mirror)
-            yield from bps.trigger_and_read(devices)
+#     @bpp.stage_decorator(devices)
+#     @bpp.run_decorator()
+#     def innerplan():
+#         for _ in range(data_collection_size):
+#             yield from good_mirror_config(mirror)
+#             yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
+#             yield from bps.trigger_and_read(devices)
 
-    yield from innerplan()
+#     yield from innerplan()
 
 
 def voltage_held_over_time(
     vfm: BimorphMirror,
     hfm: BimorphMirror,
     detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int], beam_intensity: SignalR[float],
     settle_time: float = 50,
 ) -> MsgGenerator:
     devices = [vfm, hfm, *detectors]
@@ -331,24 +363,28 @@ def voltage_held_over_time(
                 else:
                     # 20%
                     yield from next_all_channels(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
                 yield from bps.sleep(settle_time)
         # 20%
         elif num == 4 or 5:
             for _ in range(data_collection_size):
                 yield from next_single_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
                 yield from bps.sleep(settle_time)
         # 20%
         elif num == 6 or 7:
             for _ in range(data_collection_size):
                 yield from next_mixed_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
                 yield from bps.sleep(settle_time)
         # 20%
         else:
             for _ in range(data_collection_size):
                 yield from next_single_channel(vfm, hfm)
+                yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
                 yield from bps.trigger_and_read(devices)
                 yield from bps.sleep(settle_time)
 
@@ -367,6 +403,7 @@ def mixed_bimorph_mirror_data_collection(
     vfm: BimorphMirror,
     hfm: BimorphMirror,
     detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int], beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     Adjust a varying number of bimorph mirror channels for each
@@ -388,6 +425,7 @@ def mixed_bimorph_mirror_data_collection(
             else:
                 # 20%
                 yield from next_all_channels(vfm, hfm)
+            yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
@@ -396,7 +434,8 @@ def mixed_bimorph_mirror_data_collection(
 
 @attach_data_session_metadata_decorator()
 def single_bimorph_mirror_data_collection(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int], beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     Adjust a single bimorph mirror channel for each round
@@ -409,6 +448,7 @@ def single_bimorph_mirror_data_collection(
     def innerplan():
         for _ in range(data_collection_size):
             yield from next_single_channel(vfm, hfm)
+            yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
@@ -417,7 +457,11 @@ def single_bimorph_mirror_data_collection(
 
 @attach_data_session_metadata_decorator()
 def all_bimorph_mirror_data_collection(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     Adjust all bimorph mirror channels for each round
@@ -430,6 +474,7 @@ def all_bimorph_mirror_data_collection(
     def innerplan():
         for _ in range(data_collection_size):
             yield from next_all_channels(vfm, hfm)
+            yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
@@ -438,7 +483,11 @@ def all_bimorph_mirror_data_collection(
 
 @attach_data_session_metadata_decorator()
 def varied_bimorph_mirror_data_collection(
-    vfm: BimorphMirror, hfm: BimorphMirror, detectors: set[StandardDetector]
+    vfm: BimorphMirror,
+    hfm: BimorphMirror,
+    detectors: set[StandardDetector],
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
 ) -> MsgGenerator:
     """
     Adjust a random number of bimorph mirror channels
@@ -451,6 +500,7 @@ def varied_bimorph_mirror_data_collection(
     def innerplan():
         for _ in range(data_collection_size):
             yield from next_mixed_channel(vfm, hfm)
+            yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
             yield from bps.trigger_and_read(devices)
 
     yield from innerplan()
@@ -463,7 +513,11 @@ def varied_bimorph_mirror_data_collection(
 
 
 @attach_data_session_metadata_decorator()
-def mirror_output(mirror: BimorphMirror) -> MsgGenerator:
+def mirror_output(
+    mirror: BimorphMirror,
+    top_up_countdown: SignalR[int],
+    beam_intensity: SignalR[float]
+) -> MsgGenerator:
     """
     plan - print the dict of all channel voltages
     """
@@ -471,6 +525,7 @@ def mirror_output(mirror: BimorphMirror) -> MsgGenerator:
     @bpp.stage_decorator([mirror])
     @bpp.run_decorator()
     def innerplan():
+        yield from ensure_beam_readiness(top_up_countdown, beam_intensity)
         yield from bps.trigger_and_read([mirror])
 
     yield from innerplan()

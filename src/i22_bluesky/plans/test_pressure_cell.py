@@ -65,7 +65,7 @@ def raise_pressure(
     for raise 5 must be open
 
     """
-    yield pressure_cell.all_valves_control.set_valve(5, FastValveControlRequest.OPEN)
+    yield pressure_cell.all_valves_control.set({5:FastValveControlRequest.OPEN})
 
     # the pressure raising itself
     yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.FORWARD)

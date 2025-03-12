@@ -32,8 +32,7 @@ from ophyd_async.core import (
     StandardFlyer,
     TriggerInfo,
     in_micros,
-    load_device,
-    save_device,
+    YamlSettingsProvider,
 )
 from ophyd_async.fastcs.panda import (
     HDFPanda,
@@ -42,7 +41,7 @@ from ophyd_async.fastcs.panda import (
     SeqTrigger,
     StaticSeqTableTriggerLogic,
 )
-from ophyd_async.plan_stubs import fly_and_collect
+from ophyd_async.plan_stubs import fly_and_collect, store_settings, retrieve_settings, apply_panda_settings
 
 from i22_bluesky.util.baseline import (
     DEFAULT_BASELINE_MEASUREMENTS,
@@ -55,7 +54,7 @@ from i22_bluesky.util.settings import get_device_save_dir
 #: Buffer added to deadtime to handle minor discrepencies between detector
 #: and panda clocks
 DEADTIME_BUFFER = 20e-6
-
+SETTINGS_FILE_NAME = "stopflow.yaml"
 
 # various testing plans
 @attach_data_session_metadata_decorator()
@@ -140,11 +139,8 @@ def stress_test_stopflow(
 
 
 def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    yield from save_device(
-        panda,
-        get_device_save_dir(stopflow.__name__),
-        ignore=["pcap.capture", "data.capture", "data.datasets"],
-    )
+    provider  = YamlSettingsProvider(get_device_save_dir(stopflow.__name__))
+    yield from store_settings(provider, SETTINGS_FILE_NAME, panda)
 
 
 # main
@@ -215,7 +211,11 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load_device(panda, get_device_save_dir(stopflow.__name__))
+        provider  = YamlSettingsProvider(get_device_save_dir(stopflow.__name__))
+        
+        settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, panda)
+        yield from apply_panda_settings(settings)
+
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

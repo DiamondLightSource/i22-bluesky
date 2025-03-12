@@ -15,7 +15,7 @@ from ophyd_async.core import (
     StandardFlyer,
     TriggerInfo,
     in_micros,
-    load_device,
+    YamlSettingsProvider
 )
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.fastcs.panda._table import (
@@ -25,6 +25,9 @@ from ophyd_async.fastcs.panda._table import (
 from ophyd_async.fastcs.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import (
     fly_and_collect,
+    retrieve_settings,
+    apply_panda_settings,
+    apply_settings,
 )
 
 from i22_bluesky.plans.stopflow import (
@@ -33,6 +36,7 @@ from i22_bluesky.plans.stopflow import (
     raise_for_minimum_exposure_times,
 )
 
+SETTINGS_FILE_NAME = "pressure_jump.yaml"
 XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
 
@@ -146,14 +150,22 @@ def pressure_jump(
     _md.update(metadata or {})
 
     for device in detectors:
-        yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
+        provider  = YamlSettingsProvider(ROOT_LINKAM_SAVES_DIR)
+        settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, device)
+        if  isinstance(device, HDFPanda):
+            yield from apply_panda_settings(settings)
+        else:
+            yield from apply_settings(settings)
 
     @bpp.baseline_decorator(baseline)
     @attach_data_session_metadata_decorator()
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_plan():
-        yield from load_device(panda, PRESSURE_JUMP_PANDA_SAVES_DIR)
+        provider  = YamlSettingsProvider(PRESSURE_JUMP_PANDA_SAVES_DIR)
+        settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, panda)
+        yield from apply_panda_settings(settings)
+
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

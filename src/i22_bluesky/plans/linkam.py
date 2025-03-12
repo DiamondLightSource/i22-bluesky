@@ -2,7 +2,6 @@ from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
 from bluesky.utils import MsgGenerator
-from bluesky.run_engine import RunEngine, autoawait_in_bluesky_event_loop
 from dodal.common import inject
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3

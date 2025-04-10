@@ -6,7 +6,7 @@ from dodal.common import inject
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
 from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
-from ophyd_async.core import StandardDetector, StandardFlyer, load_device, save_device
+from ophyd_async.core import StandardDetector, StandardFlyer
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.plan_stubs import setup_ndstats_sum
 from pydantic import validate_call
@@ -21,19 +21,19 @@ from i22_bluesky.util.baseline import (
     DEFAULT_PANDA,
 )
 from i22_bluesky.util.settings import (
-    get_device_save_dir,
+    # get_device_save_dir,
     stamp_temp_pv,
 )
 
 DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
 
 
-def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    yield from save_device(
-        panda,
-        get_device_save_dir(linkam_plan.__name__),
-        ignore=["pcap.capture", "data.capture", "data.datasets"],
-    )
+# def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+#     yield from save_device(
+#         panda,
+#         get_device_save_dir(linkam_plan.__name__),
+#         ignore=["pcap.capture", "data.capture", "data.datasets"],
+#     )
 
 
 @attach_data_session_metadata_decorator()
@@ -106,10 +106,11 @@ def linkam_plan(
     }
     _md.update(metadata or {})
 
-    for device in devices:
-        yield from load_device(
-            device, get_device_save_dir(linkam_plan.__name__) / device.__name__
-        )
+    # TODO ophyd-async deprecated support for load_device, need to adapt and refactor
+    # for device in devices:
+    #     yield from load_device(
+    #         device, get_device_save_dir(linkam_plan.__name__) / device.__name__
+    #     )
     yield from stamp_temp_pv(linkam, stamped_detector)
     for det in detectors:
         yield from setup_ndstats_sum(det)
@@ -123,8 +124,8 @@ def linkam_plan(
                 start,
                 segment.stop,
                 segment.num
-                if segment.num is not None
-                else step_to_num(start, segment.stop, segment.step),
+                if segment.num is not None and segment.step
+                else step_to_num(start, segment.stop, segment.step or 1.0),
             )
             yield from capture_linkam_segment(
                 linkam,
@@ -132,13 +133,14 @@ def linkam_plan(
                 detectors,
                 start,
                 stop,
-                num,
-                segment.rate,
-                segment.num_frames or trajectory.default_num_frames,
-                segment.exposure or trajectory.default_exposure,
+                num=1,
+                rate=segment.rate,
+                num_frames=segment.num_frames or trajectory.default_num_frames or 1,
+                exposure=segment.exposure or trajectory.default_exposure or 0.01,
                 fly=segment.flown,
                 shutter_time=shutter_time,
                 stream_name=stream_name,
+                # exposure = num or 1, # segment logic was not finished
             )
             start = segment.stop
 

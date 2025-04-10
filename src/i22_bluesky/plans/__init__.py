@@ -1,4 +1,15 @@
 from .linkam import linkam_plan, save_linkam
+from .mirror_optimisation import (
+    all_bimorph_mirror_data_collection,
+    mirror_output,
+    mixed_bimorph_mirror_data_collection,
+    random_bimorph_mirror_data_collection,
+    single_bimorph_mirror_data_collection,
+    testing_bimorph_mirror_data_collection,
+    varied_bimorph_mirror_data_collection,
+    voltage_held_over_time,
+    multi_capture
+)
 from .stopflow import (
     check_detectors_for_stopflow,
     check_stopflow_assembly,
@@ -10,6 +21,7 @@ from .stopflow import (
 from .test_pressure_cell import make_popping_sound
 
 __all__ = [
+    "multi_capture",
     "linkam_plan",
     "save_linkam",
     "make_popping_sound",
@@ -20,4 +32,12 @@ __all__ = [
     "check_stopflow_experiment",
     "save_stopflow",
     "stress_test_stopflow",
+    "mirror_output",
+    "testing_bimorph_mirror_data_collection",
+    "mixed_bimorph_mirror_data_collection",
+    "single_bimorph_mirror_data_collection",
+    "all_bimorph_mirror_data_collection",
+    "varied_bimorph_mirror_data_collection",
+    "voltage_held_over_time",
+    "random_bimorph_mirror_data_collection",
 ]

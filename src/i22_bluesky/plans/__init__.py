@@ -8,6 +8,7 @@ from .mirror_optimisation import (
     testing_bimorph_mirror_data_collection,
     varied_bimorph_mirror_data_collection,
     voltage_held_over_time,
+    multi_capture
 )
 from .stopflow import (
     check_detectors_for_stopflow,
@@ -20,6 +21,7 @@ from .stopflow import (
 from .test_pressure_cell import make_popping_sound
 
 __all__ = [
+    "multi_capture",
     "linkam_plan",
     "save_linkam",
     "make_popping_sound",

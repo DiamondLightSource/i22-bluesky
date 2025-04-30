@@ -2,7 +2,6 @@ from typing import Annotated, Any
 
 import bluesky.preprocessors as bpp
 from bluesky.utils import MsgGenerator
-from bluesky.run_engine import RunEngine, autoawait_in_bluesky_event_loop
 from dodal.common import inject
 from dodal.common.maths import step_to_num
 from dodal.devices.linkam3 import Linkam3
@@ -10,11 +9,11 @@ from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import StandardDetector, StandardFlyer, YamlSettingsProvider
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.plan_stubs import (
-    setup_ndstats_sum,
-    store_settings,
-    retrieve_settings,
     apply_panda_settings,
     apply_settings,
+    retrieve_settings,
+    setup_ndstats_sum,
+    store_settings,
 )
 from pydantic import validate_call
 
@@ -35,10 +34,10 @@ from i22_bluesky.util.settings import (
 DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
 SETTINGS_FILE_NAME = "linkam.yaml"
 
-def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    provider  = YamlSettingsProvider(get_device_save_dir(linkam_plan.__name__))
-    yield from store_settings(provider, SETTINGS_FILE_NAME, panda)
 
+def save_linkam(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+    provider = YamlSettingsProvider(get_device_save_dir(linkam_plan.__name__))
+    yield from store_settings(provider, SETTINGS_FILE_NAME, panda)
 
 
 @attach_data_session_metadata_decorator()
@@ -112,9 +111,9 @@ def linkam_plan(
     _md.update(metadata or {})
 
     for device in devices:
-        provider  = YamlSettingsProvider(get_device_save_dir(linkam_plan.__name__))
+        provider = YamlSettingsProvider(get_device_save_dir(linkam_plan.__name__))
         settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, device)
-        if  isinstance(device, HDFPanda):
+        if isinstance(device, HDFPanda):
             yield from apply_panda_settings(settings)
         else:
             yield from apply_settings(settings)

@@ -14,8 +14,8 @@ from ophyd_async.core import (
     StandardDetector,
     StandardFlyer,
     TriggerInfo,
+    YamlSettingsProvider,
     in_micros,
-    YamlSettingsProvider
 )
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.fastcs.panda._table import (
@@ -24,10 +24,10 @@ from ophyd_async.fastcs.panda._table import (
 )
 from ophyd_async.fastcs.panda._trigger import SeqTableInfo
 from ophyd_async.plan_stubs import (
-    fly_and_collect,
-    retrieve_settings,
     apply_panda_settings,
     apply_settings,
+    fly_and_collect,
+    retrieve_settings,
 )
 
 from i22_bluesky.plans.stopflow import (
@@ -150,9 +150,9 @@ def pressure_jump(
     _md.update(metadata or {})
 
     for device in detectors:
-        provider  = YamlSettingsProvider(ROOT_LINKAM_SAVES_DIR)
+        provider = YamlSettingsProvider(ROOT_LINKAM_SAVES_DIR)
         settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, device)
-        if  isinstance(device, HDFPanda):
+        if isinstance(device, HDFPanda):
             yield from apply_panda_settings(settings)
         else:
             yield from apply_settings(settings)
@@ -162,7 +162,7 @@ def pressure_jump(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_plan():
-        provider  = YamlSettingsProvider(PRESSURE_JUMP_PANDA_SAVES_DIR)
+        provider = YamlSettingsProvider(PRESSURE_JUMP_PANDA_SAVES_DIR)
         settings = yield from retrieve_settings(provider, SETTINGS_FILE_NAME, panda)
         yield from apply_panda_settings(settings)
 

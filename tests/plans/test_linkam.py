@@ -6,11 +6,11 @@ import pytest
 from bluesky.run_engine import RunEngine
 from bluesky.utils import Msg
 from ophyd_async.core import (
-    DeviceCollector,
     PathProvider,
     StaticFilenameProvider,
     StaticPathProvider,
     TriggerInfo,
+    init_devices,
 )
 from ophyd_async.epics.adpilatus import PilatusDetector
 from pydantic import ValidationError
@@ -103,14 +103,14 @@ def path_provider(name_provider, tmp_path: Path) -> PathProvider:
 
 @pytest.fixture
 def mock_saxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
-    with DeviceCollector(mock=True):
+    with init_devices(mock=True):
         saxs = PilatusDetector("SAXS:", path_provider)
     return saxs
 
 
 @pytest.fixture
 def mock_waxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
-    with DeviceCollector(mock=True):
+    with init_devices(mock=True):
         waxs = PilatusDetector("WAXS:", path_provider)
     return waxs
 

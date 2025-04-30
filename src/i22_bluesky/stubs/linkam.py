@@ -57,9 +57,9 @@ class LinkamPathSegment(BaseModel):
 
     @model_validator(mode="after")
     def check_num_or_step_set(self) -> LinkamPathSegment:
-        assert (
-            self.num is not None or self.step is not None
-        ), "Must have set at least one of 'num', 'step'"
+        assert self.num is not None or self.step is not None, (
+            "Must have set at least one of 'num', 'step'"
+        )
         return self
 
 

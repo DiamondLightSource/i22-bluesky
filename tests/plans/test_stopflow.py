@@ -8,8 +8,6 @@ from dodal.beamlines.i22 import i0, it, saxs, waxs
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import (
     StandardDetector,
-    callback_on_mock_put,
-    set_mock_value,
 )
 from ophyd_async.epics.adpilatus import PilatusDetector
 from ophyd_async.fastcs.panda import (
@@ -17,6 +15,10 @@ from ophyd_async.fastcs.panda import (
     PandaHdf5DatasetType,
     SeqTable,
     SeqTrigger,
+)
+from ophyd_async.testing import (
+    callback_on_mock_put,
+    set_mock_value,
 )
 
 from i22_bluesky.plans import check_detectors_for_stopflow, stopflow
@@ -297,9 +299,8 @@ def test_stopflow_seq_table(
     expected_seq_table: SeqTable,
 ):
     for element in generated_seq_table.__dict__:
-        assert all(
-            getattr(expected_seq_table, element)
-            == getattr(generated_seq_table, element)
+        np.testing.assert_array_equal(
+            getattr(expected_seq_table, element), getattr(generated_seq_table, element)
         )
 
 

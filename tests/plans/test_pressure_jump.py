@@ -7,7 +7,7 @@ from i22_bluesky.plans.pressure_jump import pressure_jump
 
 
 def explore_function_output_space(
-    func: Callable[[float, float, float]], **fixed_params
+    func: Callable[[float, float, float], MsgGenerator], **fixed_params
 ):
     def wrapped_func(a, b, c):
         return func(a, b, c, **fixed_params)
@@ -39,9 +39,6 @@ def explore_function_output_space(
 # Example usage
 def example_function(a, b, c):
     return a + b * c
-
-
-output = explore_function_output_space(example_function, num_frames=1, exposure=0.1)
 
 
 def test_pressure_jump_space() -> MsgGenerator:

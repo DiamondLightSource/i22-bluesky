@@ -299,9 +299,8 @@ def test_stopflow_seq_table(
     expected_seq_table: SeqTable,
 ):
     for element in generated_seq_table.__dict__:
-        assert all(
-            getattr(expected_seq_table, element)
-            == getattr(generated_seq_table, element)
+        np.testing.assert_array_equal(
+            getattr(expected_seq_table, element), getattr(generated_seq_table, element)
         )
 
 

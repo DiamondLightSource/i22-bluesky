@@ -14,6 +14,7 @@ from .test_p38_devices import (
     test_p38_linkam,
     test_p38_pressure_cell,
     test_p38_tetramm,
+    test_p38_tetramm_prepare,
 )
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "test_p38_linkam",
     "test_p38_pressure_cell",
     "test_p38_tetramm",
+    "test_p38_tetramm_prepare",
     "stopflow",
     "check_detectors_for_stopflow",
     "check_stopflow_assembly",

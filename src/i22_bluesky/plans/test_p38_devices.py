@@ -98,8 +98,10 @@ def test_p38_tetramm_prepare(
     LOGGER.info("prepare tetramm")
     yield from bps.prepare(tetramm, trigger_info, wait=False, group="prepare")
 
-    yield from bps.wait(group="prepare", timeout=30)
-    #yield from bps.sleep(0.2)
+    yield from bps.sleep(0.5)
+
+    yield from bps.wait(group="prepare", timeout=30, error_on_timeout=True)
+    LOGGER.info("Prepare complete")
 
     # Values after
     data = yield from bps.rd(tetramm.drv.trigger_mode)

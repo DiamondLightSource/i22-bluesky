@@ -1,19 +1,29 @@
 from pathlib import Path
 
+from bluesky.utils import MsgGenerator
 from dodal.devices.linkam3 import Linkam3
-from ophyd_async.core import StandardDetector
+from ophyd_async.core import Device, StandardDetector, YamlSettingsProvider
 from ophyd_async.epics.adcore import (
     ADBaseIO,
     NDAttributePv,
     NDAttributePvDbrType,
 )
-from ophyd_async.plan_stubs import setup_ndattributes
+from ophyd_async.fastcs.panda import HDFPanda
+from ophyd_async.plan_stubs import retrieve_settings, setup_ndattributes, store_settings
 
-SAVES_ROOT = Path(__file__).parent.parent.parent
+_SETTINGS_PROVIDER = YamlSettingsProvider(Path(__file__).parent.parent.parent)
 
 
-def get_device_save_dir(plan_name: str) -> Path:
-    return SAVES_ROOT / "pvs" / plan_name
+def save_device(device: Device, plan_name: str) -> MsgGenerator:
+    yield from store_settings(
+        _SETTINGS_PROVIDER, plan_name, device, only_config=isinstance(device, HDFPanda)
+    )
+
+
+def load_device(device: Device, plan_name: str) -> MsgGenerator:
+    yield from retrieve_settings(
+        _SETTINGS_PROVIDER, plan_name, device, only_config=isinstance(device, HDFPanda)
+    )
 
 
 def stamp_temp_pv(linkam: Linkam3, stamped_detector: StandardDetector):

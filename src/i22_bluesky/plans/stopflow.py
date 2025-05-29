@@ -32,8 +32,6 @@ from ophyd_async.core import (
     StandardFlyer,
     TriggerInfo,
     in_micros,
-    load_device,
-    save_device,
 )
 from ophyd_async.fastcs.panda import (
     HDFPanda,
@@ -51,7 +49,9 @@ from i22_bluesky.util.baseline import (
     DEFAULT_PANDA,
     FAST_DETECTORS,
 )
-from i22_bluesky.util.settings import get_device_save_dir
+from i22_bluesky.util.settings import load_device, save_device
+
+_PLAN_NAME = "stopflow"
 
 
 # various testing plans
@@ -136,12 +136,8 @@ def stress_test_stopflow(
     )
 
 
-def save_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
-    yield from save_device(
-        panda,
-        get_device_save_dir(stopflow.__name__),
-        ignore=["pcap.capture", "data.capture", "data.datasets"],
-    )
+def save_device_for_stopflow(panda: HDFPanda = DEFAULT_PANDA) -> MsgGenerator:
+    yield from save_device(panda, _PLAN_NAME)
 
 
 # main
@@ -212,7 +208,7 @@ def stopflow(
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_stopflow_plan():
-        yield from load_device(panda, get_device_save_dir(stopflow.__name__))
+        yield from load_device(panda, _PLAN_NAME)
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

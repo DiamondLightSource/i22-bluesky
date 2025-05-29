@@ -45,16 +45,13 @@ from ophyd_async.fastcs.panda import (
 from ophyd_async.plan_stubs import fly_and_collect
 
 from i22_bluesky.util.baseline import (
+    DEADTIME_BUFFER,
     DEFAULT_BASELINE_MEASUREMENTS,
     DEFAULT_DETECTORS,
     DEFAULT_PANDA,
     FAST_DETECTORS,
 )
 from i22_bluesky.util.settings import get_device_save_dir
-
-#: Buffer added to deadtime to handle minor discrepencies between detector
-#: and panda clocks
-DEADTIME_BUFFER = 20e-6
 
 
 # various testing plans

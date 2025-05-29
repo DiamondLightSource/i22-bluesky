@@ -1,13 +1,12 @@
 import bluesky.plan_stubs as bps
 from bluesky.utils import MsgGenerator
-from dodal.common import inject
 from dodal.devices.pressure_jump_cell import (
     FastValveControlRequest,
     PressureJumpCell,
     PumpMotorDirectionState,
 )
 
-DEFAULT_PRESSURE_CELL = inject("high_pressure_xray_cell")
+from i22_bluesky.util.baseline import DEFAULT_PRESSURE_CELL
 
 
 def make_popping_sound(

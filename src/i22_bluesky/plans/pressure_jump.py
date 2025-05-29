@@ -6,7 +6,6 @@ import bluesky.plans as bp
 import bluesky.preprocessors as bpp
 from bluesky.protocols import Readable
 from bluesky.utils import MsgGenerator
-from dodal.common import inject
 from dodal.devices.tetramm import TetrammDetector
 from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import (
@@ -32,6 +31,11 @@ from i22_bluesky.plans.stopflow import (
     DEFAULT_BASELINE_MEASUREMENTS,
     raise_for_minimum_exposure_times,
 )
+from i22_bluesky.util.baseline import (
+    DEFAULT_DETECTORS,
+    DEFAULT_PANDA,
+    DEFAULT_PRESSURE_CELL,
+)
 
 XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
@@ -40,18 +44,6 @@ PRESSURE_JUMP_PANDA_SAVES_DIR = (
     Path(__file__).parent.parent.parent / "pvs" / "pressure_jump" / "panda"
 )
 
-FAST_DETECTORS = {
-    inject("saxs"),
-    inject("waxs"),
-    inject("i0"),
-    inject("it"),
-}
-
-DEFAULT_DETECTORS = FAST_DETECTORS | {inject("oav")}
-
-DEFAULT_PANDA = inject("panda1")
-
-PRESSURE_CELL = inject("pressure_cell")
 ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
 
 
@@ -90,7 +82,7 @@ def pressure_jump(
     metadata: dict[str, Any] | None = None,
     baseline: set[Readable] = DEFAULT_BASELINE_MEASUREMENTS,
     detectors: set[StandardDetector] = DEFAULT_DETECTORS,
-    pressure_cell: StandardDetector = PRESSURE_CELL,
+    pressure_cell: StandardDetector = DEFAULT_PRESSURE_CELL,
     panda: HDFPanda = DEFAULT_PANDA,
 ) -> MsgGenerator:
     """

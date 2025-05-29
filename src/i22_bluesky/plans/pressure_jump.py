@@ -46,9 +46,9 @@ def check_detectors_for_pressure_jump(
     """
 
     # Tetramms do not support software triggering
-    software_triggerable_devices = {
+    software_triggerable_devices = [
         device for device in devices if not isinstance(device, TetrammDetector)
-    }
+    ]
     yield from bp.count(
         software_triggerable_devices,
         num=num_frames,

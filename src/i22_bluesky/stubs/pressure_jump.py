@@ -1,6 +1,9 @@
+from typing import cast
+
 import bluesky.plan_stubs as bps
 from bluesky.utils import MsgGenerator
 from ophyd_async.core import (
+    DetectorController,
     DetectorTrigger,
     StandardDetector,
     StandardFlyer,
@@ -49,15 +52,18 @@ def prepare_seq_table_flyer_and_det(
     """
 
     deadtime = (
-        max(det.controller.get_deadtime(exposure) for det in detectors)
+        max(
+            cast(DetectorController, det._controller).get_deadtime(exposure)  # noqa: SLF001
+            for det in detectors
+        )
         + DEADTIME_BUFFER
     )
     trigger_info = TriggerInfo(
-        num=(pre_jump_frames + post_jump_frames),
-        trigger=DetectorTrigger.constant_gate,
+        number_of_events=(pre_jump_frames + post_jump_frames),
+        trigger=DetectorTrigger.CONSTANT_GATE,
         deadtime=deadtime,
         livetime=exposure,
-        frame_timeout=60.0,
+        exposure_timeout=60.0,
     )
 
     # Generate a seq table
@@ -69,7 +75,7 @@ def prepare_seq_table_flyer_and_det(
         deadtime,
         period,
     )
-    table_info = SeqTableInfo(table, repeats=1)
+    table_info = SeqTableInfo(sequence_table=table, repeats=1)
 
     # Upload the seq table and arm all detectors.
     for det in detectors:
@@ -108,13 +114,13 @@ def pressure_jump_seq_table(
     pre_delay = max(period - 2 * shutter_time - total_gate_time, 0)
 
     # Wait for pre-delay then open shutter
-    table = SeqTable(
+    table = SeqTable.row(
         time1=in_micros(pre_delay), time2=in_micros(shutter_time), outa2=True
     )
 
     # Keeping shutter open, do n triggers
     if pre_jump_frames > 0:
-        table += SeqTable(
+        table += SeqTable.row(
             repeats=pre_jump_frames,
             time1=in_micros(exposure),
             outa1=True,
@@ -125,7 +131,7 @@ def pressure_jump_seq_table(
     # todo not sure how do we get the trigger exactly
     # Do m triggers after BITA=1
     if post_jump_frames > 0:
-        table += SeqTable(
+        table += SeqTable.row(
             trigger=SeqTrigger.BITA_1,
             repeats=1,
             time1=in_micros(exposure),
@@ -135,7 +141,7 @@ def pressure_jump_seq_table(
             outa2=True,
         )
         if post_jump_frames > 1:
-            table += SeqTable(
+            table += SeqTable.row(
                 repeats=post_jump_frames - 1,
                 time1=in_micros(exposure),
                 outa1=True,
@@ -144,5 +150,5 @@ def pressure_jump_seq_table(
                 outa2=True,
             )
     # Add the shutter close
-    table += SeqTable(time2=in_micros(shutter_time))
+    table += SeqTable.row(time2=in_micros(shutter_time))
     return table

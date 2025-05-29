@@ -7,6 +7,7 @@ from bluesky.run_engine import RunEngine
 from bluesky.utils import Msg
 from ophyd_async.core import (
     PathProvider,
+    StandardDetector,
     StaticFilenameProvider,
     StaticPathProvider,
     TriggerInfo,
@@ -120,7 +121,7 @@ def test_stepped_behaviour_to_all_temps_in_order(
 ):
     mock_linkam = Mock()
     flyer = Mock()
-    detectors = {mock_saxs, mock_waxs}
+    detectors: set[StandardDetector] = {mock_saxs, mock_waxs}
     msgs = list(
         capture_linkam_segment(
             mock_linkam,
@@ -155,7 +156,7 @@ def test_flown_behaviour_sequence_table(
 ):
     mock_linkam = Mock()
     flyer = Mock()
-    detectors = {mock_saxs, mock_waxs}
+    detectors: set[StandardDetector] = {mock_saxs, mock_waxs}
     msgs = list(
         capture_linkam_segment(
             mock_linkam,

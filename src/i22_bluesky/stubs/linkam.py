@@ -100,7 +100,7 @@ class LinkamTrajectory(BaseModel):
 def capture_temp(
     linkam: Linkam3,
     flyer: StandardFlyer,
-    detectors: set[StandardDetector],
+    detectors: list[StandardDetector],
     temp: float,
     num_frames: int,
     exposure: float,
@@ -141,13 +141,14 @@ def capture_linkam_segment(
     # Set temperature ramp rate to expected for segment
     yield from bps.mv(linkam.ramp_rate, rate)
 
+    ordered_detectors = list(detectors)
     if not fly:
         # Move, stop then collect at each step
         for temp in np.linspace(start, stop, num):
             yield from capture_temp(
                 linkam,
                 flyer,
-                detectors,
+                ordered_detectors,
                 temp,
                 num_frames,
                 exposure,
@@ -158,7 +159,7 @@ def capture_linkam_segment(
         # Kick off move, capturing periodically
         yield from prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
             flyer=flyer,
-            detectors=detectors,
+            detectors=ordered_detectors,
             number_of_frames=num * num_frames,
             exposure=exposure,
             shutter_time=shutter_time,
@@ -169,7 +170,7 @@ def capture_linkam_segment(
         yield from fly_and_collect(
             stream_name=stream_name,
             flyer=flyer,
-            detectors=detectors,
+            detectors=ordered_detectors,
         )
         # Make sure linkam has finished
         yield from bps.wait(group=linkam_group)

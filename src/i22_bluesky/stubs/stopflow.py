@@ -1,6 +1,9 @@
+from typing import cast
+
 import bluesky.plan_stubs as bps
 from bluesky.utils import MsgGenerator
 from ophyd_async.core import (
+    DetectorController,
     DetectorTrigger,
     StandardDetector,
     StandardFlyer,
@@ -50,15 +53,18 @@ def prepare_seq_table_flyer_and_det(
     """
 
     deadtime = (
-        max(det.controller.get_deadtime(exposure) for det in detectors)
+        max(
+            cast(DetectorController, det._controller).get_deadtime(exposure)  # noqa: SLF001
+            for det in detectors
+        )
         + DEADTIME_BUFFER
     )
     trigger_info = TriggerInfo(
-        num=(pre_stop_frames + post_stop_frames),
-        trigger=DetectorTrigger.constant_gate,
+        number_of_events=(pre_stop_frames + post_stop_frames),
+        trigger=DetectorTrigger.CONSTANT_GATE,
         deadtime=deadtime,
         livetime=exposure,
-        frame_timeout=60.0,
+        exposure_timeout=60.0,
     )
 
     # Generate a seq table
@@ -70,7 +76,7 @@ def prepare_seq_table_flyer_and_det(
         deadtime,
         period,
     )
-    table_info = SeqTableInfo(table, repeats=1)
+    table_info = SeqTableInfo(sequence_table=table, repeats=1)
 
     # Upload the seq table and arm all detectors.
     for det in detectors:

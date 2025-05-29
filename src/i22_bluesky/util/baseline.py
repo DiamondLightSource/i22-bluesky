@@ -10,6 +10,7 @@ FAST_DETECTORS: set[StandardDetector] = {
     inject("i0"),
     inject("it"),
 }
+DEFAULT_STAMPED_DETECTOR: StandardDetector = inject("saxs")
 
 DEFAULT_DETECTORS: set[StandardDetector] = FAST_DETECTORS | {inject("oav")}
 
@@ -28,5 +29,10 @@ DEFAULT_BASELINE_MEASUREMENTS: set[Readable] = {
     inject("synchrotron"),
 }
 
+#: Buffer added to deadtime to handle minor discrepencies between detector
+#: and panda clocks
+DEADTIME_BUFFER = 20e-6
+
 DEFAULT_PANDA: HDFPanda = inject("panda1")
 DEFAULT_LINKAM: Linkam3 = inject("linkam")
+DEFAULT_PRESSURE_CELL = inject("pressure_cell")

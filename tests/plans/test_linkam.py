@@ -6,11 +6,11 @@ import pytest
 from bluesky.run_engine import RunEngine
 from bluesky.utils import Msg
 from ophyd_async.core import (
-    DeviceCollector,
     PathProvider,
     StaticFilenameProvider,
     StaticPathProvider,
     TriggerInfo,
+    init_devices,
 )
 from ophyd_async.epics.adpilatus import PilatusDetector
 from pydantic import ValidationError
@@ -103,14 +103,14 @@ def path_provider(name_provider, tmp_path: Path) -> PathProvider:
 
 @pytest.fixture
 def mock_saxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
-    with DeviceCollector(mock=True):
+    with init_devices(mock=True):
         saxs = PilatusDetector("SAXS:", path_provider)
     return saxs
 
 
 @pytest.fixture
 def mock_waxs(RE: RunEngine, path_provider: PathProvider) -> PilatusDetector:
-    with DeviceCollector(mock=True):
+    with init_devices(mock=True):
         waxs = PilatusDetector("WAXS:", path_provider)
     return waxs
 
@@ -144,7 +144,9 @@ def test_stepped_behaviour_to_all_temps_in_order(
         # in order
         assert set_index > previous_set_index
         # and wait until the move is finished
-        assert msgs[set_index + 1] == Msg("wait", group=msgs[set_index].kwargs["group"])
+        wait_message = msgs[set_index + 1]
+        assert wait_message.command == "wait"
+        assert wait_message.kwargs["group"] == msgs[set_index].kwargs["group"]
         previous_set_index = set_index
 
 

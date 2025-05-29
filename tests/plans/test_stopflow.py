@@ -8,8 +8,6 @@ from dodal.beamlines.i22 import i0, it, saxs, waxs
 from dodal.devices.tetramm import TetrammDetector
 from ophyd_async.core import (
     StandardDetector,
-    callback_on_mock_put,
-    set_mock_value,
 )
 from ophyd_async.epics.adpilatus import PilatusDetector
 from ophyd_async.fastcs.panda import (
@@ -18,12 +16,13 @@ from ophyd_async.fastcs.panda import (
     SeqTable,
     SeqTrigger,
 )
+from ophyd_async.testing import callback_on_mock_put, set_mock_value
 
 from i22_bluesky.plans import check_detectors_for_stopflow, stopflow
 from i22_bluesky.plans.stopflow import (
     raise_for_minimum_exposure_times,
-    stopflow_seq_table,
 )
+from i22_bluesky.stubs.stopflow import stopflow_seq_table
 
 SEQ_TABLE_TEST_CASES: tuple[tuple[SeqTable, SeqTable], ...] = (
     # Very simple case, 1 frame on each side and 1 second

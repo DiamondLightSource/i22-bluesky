@@ -12,7 +12,7 @@ classifiers = [
 ]
 description = "Plans and behaviours specific to the i22 beamline at DiamondLightSource."
 dependencies = [
-    "dls-dodal @ git+https://github.com/DiamondLightSource/dodal.git@main",
+    "dls-dodal",
     "ophyd_async",
     "numpy",
     "pydantic",

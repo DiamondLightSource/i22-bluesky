@@ -296,10 +296,15 @@ def test_stopflow_seq_table(
     expected_seq_table: SeqTable,
 ):
     for element in generated_seq_table.__dict__:
-        assert all(
-            getattr(expected_seq_table, element)
-            == getattr(generated_seq_table, element)
-        )
+        if element == "trigger":
+            assert getattr(expected_seq_table, element) == getattr(
+                generated_seq_table, element
+            )
+        else:
+            assert all(
+                getattr(expected_seq_table, element)
+                == getattr(generated_seq_table, element)
+            )
 
 
 @pytest.mark.xfail(reason="Strange import behavior, to be investigated")

@@ -11,4 +11,3 @@ Also see [comparison with other beamlines PandA-Zebra-TFG system]([url](https://
 It is quite useful to have TTLOUTs labeled for clarity. 
 
 One of the valid detectors are the tetrAMMs (saxs, waxs, i0, i0).
-

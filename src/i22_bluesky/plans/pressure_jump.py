@@ -10,11 +10,11 @@ from dodal.devices.tetramm import TetrammDetector
 from dodal.plan_stubs.data_session import attach_data_session_metadata_decorator
 from ophyd_async.core import (
     DetectorTrigger,
+    Device,
     StandardDetector,
     StandardFlyer,
     TriggerInfo,
     in_micros,
-    load_device,
 )
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
 from ophyd_async.fastcs.panda._table import (
@@ -36,15 +36,21 @@ from i22_bluesky.util.baseline import (
     DEFAULT_PANDA,
     DEFAULT_PRESSURE_CELL,
 )
+from i22_bluesky.util.settings import load_device, save_device
 
 XML_PATH = Path("/dls_sw/i22/software/blueapi/scratch/nxattributes")
 
+_PLAN_NAME = "pressure_jump"
 
 PRESSURE_JUMP_PANDA_SAVES_DIR = (
     Path(__file__).parent.parent.parent / "pvs" / "pressure_jump" / "panda"
 )
 
 ROOT_LINKAM_SAVES_DIR = Path(__file__).parent.parent.parent / "pvs" / "linkam_plan"
+
+
+def save_device_for_pressure_jump(device: Device = DEFAULT_PANDA) -> MsgGenerator:
+    yield from save_device(device, _PLAN_NAME)
 
 
 @attach_data_session_metadata_decorator()
@@ -138,14 +144,14 @@ def pressure_jump(
     _md.update(metadata or {})
 
     for device in detectors:
-        yield from load_device(device, ROOT_LINKAM_SAVES_DIR / device.__name__)
+        yield from load_device(device, _PLAN_NAME)
 
     @bpp.baseline_decorator(baseline)
     @attach_data_session_metadata_decorator()
     @bpp.stage_decorator(devices)
     @bpp.run_decorator(md=_md)
     def inner_plan():
-        yield from load_device(panda, PRESSURE_JUMP_PANDA_SAVES_DIR)
+        yield from load_device(panda, _PLAN_NAME)
         yield from prepare_seq_table_flyer_and_det(
             flyer=flyer,
             detectors=detectors,

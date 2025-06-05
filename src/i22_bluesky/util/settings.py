@@ -12,7 +12,9 @@ from ophyd_async.epics.adcore import (
 from ophyd_async.fastcs.panda import HDFPanda
 from ophyd_async.plan_stubs import retrieve_settings, setup_ndattributes, store_settings
 
-_SETTINGS_PROVIDER = YamlSettingsProvider(Path(__file__).parent.parent.parent)
+_REPO_ROOT = Path(__file__).parent.parent.parent.parent
+
+_SETTINGS_PROVIDER = YamlSettingsProvider(_REPO_ROOT / "pvs")
 
 
 def save_device(device: Device, plan_name: str) -> MsgGenerator:

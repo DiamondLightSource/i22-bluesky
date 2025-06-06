@@ -5,11 +5,15 @@ import numpy as np
 from dodal.common import MsgGenerator
 from dodal.common.coordination import group_uuid
 from dodal.devices.linkam3 import Linkam3
-from ophyd_async.core import StandardDetector, StandardFlyer
-from ophyd_async.plan_stubs import (
-    fly_and_collect,
-    prepare_static_seq_table_flyer_and_detectors_with_same_trigger,
+from ophyd_async.core import (
+    DetectorTrigger,
+    StandardDetector,
+    StandardFlyer,
+    TriggerInfo,
+    in_micros,
 )
+from ophyd_async.fastcs.panda import SeqTable, SeqTableInfo
+from ophyd_async.plan_stubs import fly_and_collect
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -95,6 +99,75 @@ class LinkamTrajectory(BaseModel):
             segment.exposure is not None for segment in self.path
         ), "Exposure not set for default and for some segment(s)!"
         return self
+
+
+def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
+    flyer: StandardFlyer[SeqTableInfo],
+    detectors: list[StandardDetector],
+    number_of_frames: int,
+    exposure: float,
+    shutter_time: float,
+    period: float,
+    repeats: int = 1,
+    frame_timeout: float | None = None,
+):
+    """Prepare a hardware triggered flyable and one or more detectors.
+
+    Prepare a hardware triggered flyable and one or more detectors with the
+    same trigger. This method constructs TriggerInfo and a static sequence
+    table from required parameters. The table is required to prepare the flyer,
+    and the TriggerInfo is required to prepare the detector(s).
+
+    This prepares all supplied detectors with the same trigger.
+
+    """
+    if not detectors:
+        raise ValueError("No detectors provided. There must be at least one.")
+
+    deadtime = max(
+        det._controller.get_deadtime(exposure)  # noqa
+        for det in detectors
+    )
+    time_between_frames = max(
+        0, (period - shutter_time) - number_of_frames * repeats * (exposure + deadtime)
+    )
+
+    trigger_info = TriggerInfo(
+        number_of_events=number_of_frames * repeats,
+        trigger=DetectorTrigger.CONSTANT_GATE,
+        deadtime=deadtime,
+        livetime=exposure,
+        exposure_timeout=frame_timeout,
+    )
+
+    table = (
+        # Wait for pre-delay then open shutter
+        SeqTable.row(
+            time1=in_micros(0),
+            time2=in_micros(shutter_time),
+            outa2=True,
+        )
+        +
+        # Keeping shutter open, do N triggers
+        SeqTable.row(
+            repeats=number_of_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime + time_between_frames / number_of_frames),
+            outa2=True,
+        )
+        +
+        # Add the shutter close
+        SeqTable.row(time2=in_micros(shutter_time))
+    )
+
+    table_info = SeqTableInfo(sequence_table=table, repeats=repeats)
+
+    for det in detectors:
+        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
+    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
+    yield from bps.wait(group="prep")
 
 
 def capture_temp(

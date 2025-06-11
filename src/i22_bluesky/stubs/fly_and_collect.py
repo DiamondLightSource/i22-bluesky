@@ -26,7 +26,7 @@ def fly_and_collect(
     for detector in detectors:
         yield from bps.kickoff(detector)
 
-    # collect_while_completing
+    # TODO: replace the following with collect_while_completing, find out why it hangs.
     group = short_uid(label="complete")
 
     yield from bps.complete(flyer, wait=False, group=group)

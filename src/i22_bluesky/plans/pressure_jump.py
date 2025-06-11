@@ -12,14 +12,12 @@ from ophyd_async.core import (
     StandardFlyer,
 )
 from ophyd_async.fastcs.panda import HDFPanda, StaticSeqTableTriggerLogic
-from ophyd_async.plan_stubs import (
-    fly_and_collect,
-)
 
 from i22_bluesky.plans.stopflow import (
     DEFAULT_BASELINE_MEASUREMENTS,
     raise_for_minimum_exposure_times,
 )
+from i22_bluesky.stubs.fly_and_collect import fly_and_collect
 from i22_bluesky.stubs.pressure_jump import prepare_seq_table_flyer_and_det
 from i22_bluesky.util.baseline import (
     DEFAULT_DETECTORS,

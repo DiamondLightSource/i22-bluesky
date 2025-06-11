@@ -33,8 +33,8 @@ from ophyd_async.fastcs.panda import (
     HDFPanda,
     StaticSeqTableTriggerLogic,
 )
-from ophyd_async.plan_stubs import fly_and_collect
 
+from i22_bluesky.stubs.fly_and_collect import fly_and_collect
 from i22_bluesky.stubs.stopflow import (
     prepare_seq_table_flyer_and_det,
     raise_for_minimum_exposure_times,

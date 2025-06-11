@@ -5,12 +5,16 @@ import numpy as np
 from dodal.common import MsgGenerator
 from dodal.common.coordination import group_uuid
 from dodal.devices.linkam3 import Linkam3
-from ophyd_async.core import StandardDetector, StandardFlyer
+from ophyd_async.core import (
+    StandardDetector,
+    StandardFlyer,
+)
 from ophyd_async.plan_stubs import (
-    fly_and_collect,
     prepare_static_seq_table_flyer_and_detectors_with_same_trigger,
 )
 from pydantic import BaseModel, Field, model_validator
+
+from i22_bluesky.stubs.fly_and_collect import fly_and_collect
 
 
 class LinkamPathSegment(BaseModel):

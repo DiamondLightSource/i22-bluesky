@@ -79,7 +79,7 @@ py==1.11.0
 pydantic==2.11.5
 pydantic_core==2.33.2
 pydantic_numpy==8.0.1
-pyepics==3.5.7
+pyepics==3.5.8
 Pygments==2.19.1
 pyparsing==3.2.3
 pytest==8.3.5

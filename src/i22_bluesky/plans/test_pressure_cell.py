@@ -38,9 +38,9 @@ def lower_pressure(
     """
     # todo not sure what is the difference exactly
     yield from bps.read(
-        pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
+        pressure_cell.all_valves_control.set({6:FastValveControlRequest.OPEN})
     )
-    yield pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
+    yield pressure_cell.all_valves_control.set({6:FastValveControlRequest.OPEN})
     # the pressure lowering itself
     yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.REVERSE)
     yield pressure_cell.pump.pump_position.set(target_pressure)
@@ -64,7 +64,7 @@ def raise_pressure(
     for raise 5 must be open
 
     """
-    yield pressure_cell.all_valves_control.set_valve(5, FastValveControlRequest.OPEN)
+    yield pressure_cell.all_valves_control.set({5:FastValveControlRequest.OPEN})
 
     # the pressure raising itself
     yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.FORWARD)

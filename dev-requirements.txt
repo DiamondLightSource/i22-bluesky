@@ -82,7 +82,7 @@ pydantic_numpy==8.0.1
 pyepics==3.5.8
 Pygments==2.19.1
 pyparsing==3.2.3
-pytest==8.3.5
+pytest==8.4.1
 pytest-cov==6.1.1
 PyYAML==6.0.2
 questionary==2.1.0

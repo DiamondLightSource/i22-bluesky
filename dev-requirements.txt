@@ -105,7 +105,7 @@ tqdm==4.67.1
 types-mock==5.2.0.20250516
 typing-inspect==0.9.0
 typing-inspection==0.4.1
-typing_extensions==4.13.2
+typing_extensions==4.14.0
 urllib3==2.4.0
 virtualenv==20.31.2
 wcwidth==0.2.13

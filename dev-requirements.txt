@@ -35,7 +35,7 @@ graypy==2.1.0
 historydict==1.2.6
 identify==2.6.12
 idna==3.10
-importlib_metadata==8.6.1
+importlib_metadata==8.7.0
 importlib_resources==6.5.2
 iniconfig==2.1.0
 Jinja2==3.1.6

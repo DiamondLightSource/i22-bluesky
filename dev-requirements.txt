@@ -25,7 +25,7 @@ dls-dodal==1.47.0
 docopt==0.6.2
 dunamai==1.24.1
 epicscorelibs==7.0.7.99.1.2a1
-event-model==1.22.3
+event-model==1.23
 filelock==3.18.0
 flexcache==0.3
 flexparser==0.4

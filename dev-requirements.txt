@@ -45,7 +45,7 @@ jsonschema-specifications==2025.4.1
 lz4==4.4.4
 MarkupSafe==3.0.2
 marshmallow==3.26.1
-msgpack==1.1.0
+msgpack==1.1.1
 msgpack-numpy==0.4.8
 multidict==6.4.4
 mypy==1.15.0

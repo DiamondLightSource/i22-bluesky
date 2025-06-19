@@ -29,7 +29,7 @@ event-model==1.23
 filelock==3.18.0
 flexcache==0.3
 flexparser==0.4
-frozenlist==1.6.0
+frozenlist==1.7.0
 funcy==2.0
 graypy==2.1.0
 historydict==1.2.6

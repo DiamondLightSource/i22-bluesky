@@ -99,7 +99,7 @@ setuptools_dso==2.12.2
 six==1.17.0
 stomp.py==8.2.0
 toolz==1.0.0
-tox==3.28.0
+tox==4.27.0
 tox-direct==0.4
 tqdm==4.67.1
 types-mock==5.2.0.20250516

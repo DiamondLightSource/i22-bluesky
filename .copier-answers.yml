@@ -16,3 +16,5 @@ package_name: i22_bluesky
 pypi: true
 repo_name: i22-bluesky
 type_checker: mypy
+
+#copier updated

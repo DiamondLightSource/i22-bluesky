@@ -7,7 +7,7 @@ annotated-types==0.7.0
 attrs==25.3.0
 bidict==0.23.1
 bluesky==1.14.2
-certifi==2025.4.26
+certifi==2025.7.9
 cfgv==3.4.0
 charset-normalizer==3.4.2
 click==8.2.1

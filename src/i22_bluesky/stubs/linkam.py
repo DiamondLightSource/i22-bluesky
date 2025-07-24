@@ -18,7 +18,6 @@ from ophyd_async.fastcs.panda import (
     SeqTableInfo,
 )
 from ophyd_async.fastcs.panda import SeqTable, SeqTableInfo
-from ophyd_async.plan_stubs import fly_and_collect
 from pydantic import BaseModel, Field, model_validator
 
 from i22_bluesky.stubs.fly_and_collect import fly_and_collect

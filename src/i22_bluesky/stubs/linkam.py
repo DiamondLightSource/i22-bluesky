@@ -128,13 +128,16 @@ def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
         det._controller.get_deadtime(exposure)  # noqa
         for det in detectors
     )
+    print(f"period: {period}: should be 30s")
     time_between_frames = max(
-        0, (period - shutter_time) - number_of_frames * repeats * (exposure + deadtime)
+        0, period - number_of_frames * repeats * (exposure + deadtime)
     )
+    print(f"time between frames: {time_between_frames}: should be ~25ish")
 
+    print(f"time2: {deadtime + time_between_frames / number_of_frames}: should be ~2ish")
     trigger_info = TriggerInfo(
         number_of_events=number_of_frames * repeats,
-        trigger=DetectorTrigger.CONSTANT_GATE,
+        trigger=DetectorTrigger.EDGE_TRIGGER,
         deadtime=deadtime,
         livetime=exposure,
         exposure_timeout=frame_timeout,
@@ -236,7 +239,7 @@ def capture_linkam_segment(
             number_of_frames=num * num_frames,
             exposure=exposure,
             shutter_time=shutter_time,
-            period=abs(stop - start / (rate / 60)),  # period in s, dT/(dT/dt)
+            period=abs((stop - start) / (rate / 60)),  # period in s, dT/(dT/dt)
         )
         linkam_group = group_uuid("linkam")
         yield from bps.abs_set(linkam, stop, group=linkam_group, wait=False)

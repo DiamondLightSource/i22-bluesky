@@ -261,6 +261,7 @@ def capture_temp(
         number_of_frames=num_frames,
         exposure=exposure,
         shutter_time=shutter_time,
+        period=exposure,
         
     )
     yield from fly_and_collect(

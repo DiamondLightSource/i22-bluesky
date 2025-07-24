@@ -107,7 +107,7 @@ class LinkamTrajectory(BaseModel):
 
 def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
     flyer: StandardFlyer[SeqTableInfo],
-    detectors: list[StandardDetector],
+    detectors: list[StandardDetector] | set[StandardDetector],
     number_of_frames: int,
     exposure: float,
     shutter_time: float,
@@ -125,6 +125,9 @@ def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
     This prepares all supplied detectors with the same trigger.
 
     """
+    if not isinstance(detectors, set):
+        detectors = list(detectors)
+
     if not detectors:
         raise ValueError("No detectors provided. There must be at least one.")
 
@@ -132,15 +135,10 @@ def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
         det._controller.get_deadtime(exposure)  # noqa
         for det in detectors
     )
-    print(f"period: {period}: should be 30s")
     time_between_frames = max(
         0, period - number_of_frames * repeats * (exposure + deadtime)
     )
-    print(f"time between frames: {time_between_frames}: should be ~25ish")
 
-    print(
-        f"time2: {deadtime + time_between_frames / number_of_frames}: should be ~2ish"
-    )
     trigger_info = TriggerInfo(
         number_of_events=number_of_frames * repeats,
         trigger=DetectorTrigger.EDGE_TRIGGER,

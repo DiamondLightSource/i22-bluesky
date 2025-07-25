@@ -21,71 +21,6 @@ from pydantic import BaseModel, Field, model_validator
 from i22_bluesky.stubs.fly_and_collect import fly_and_collect
 
 
-def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
-    flyer: StandardFlyer[SeqTableInfo],
-    detectors: list[StandardDetector],
-    number_of_frames: int,
-    exposure: float,
-    shutter_time: float,
-    repeats: int = 1,
-    period: float = 0.0,
-    frame_timeout: float | None = None,
-):
-    """Prepare a hardware triggered flyable and one or more detectors.
-
-    Prepare a hardware triggered flyable and one or more detectors with the
-    same trigger. This method constructs TriggerInfo and a static sequence
-    table from required parameters. The table is required to prepare the flyer,
-    and the TriggerInfo is required to prepare the detector(s).
-
-    This prepares all supplied detectors with the same trigger.
-
-    """
-    if not detectors:
-        raise ValueError("No detectors provided. There must be at least one.")
-
-    deadtime = max(det._controller.get_deadtime(exposure) for det in detectors)  # noqa: SLF001
-
-    trigger_info = TriggerInfo(
-        number_of_events=number_of_frames * repeats,
-        trigger=DetectorTrigger.CONSTANT_GATE,
-        deadtime=deadtime,
-        livetime=exposure,
-        exposure_timeout=frame_timeout,
-    )
-    trigger_time = number_of_frames * (exposure + deadtime)
-    pre_delay = max(period - 2 * shutter_time - trigger_time, 0)
-
-    table = (
-        # Wait for pre-delay then open shutter
-        SeqTable.row(
-            time1=in_micros(pre_delay),
-            time2=in_micros(shutter_time),
-            outa2=True,
-        )
-        +
-        # Keeping shutter open, do N triggers
-        SeqTable.row(
-            repeats=number_of_frames,
-            time1=in_micros(exposure),
-            outa1=True,
-            outb1=True,
-            time2=in_micros(deadtime),
-            outa2=True,
-        )
-        +
-        # Add the shutter close
-        SeqTable.row(time2=in_micros(shutter_time))
-    )
-
-    table_info = SeqTableInfo(sequence_table=table, repeats=repeats)
-
-    for det in detectors:
-        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
-    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
-    yield from bps.wait(group="prep")
-
-
 class LinkamPathSegment(BaseModel):
     stop: float = Field(
         description="Target final temperature and initial temperature of next segment.",
@@ -170,6 +105,78 @@ class LinkamTrajectory(BaseModel):
         return self
 
 
+def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
+    flyer: StandardFlyer[SeqTableInfo],
+    detectors: list[StandardDetector] | set[StandardDetector],
+    number_of_frames: int,
+    exposure: float,
+    shutter_time: float,
+    period: float,
+    repeats: int = 1,
+    frame_timeout: float | None = None,
+):
+    """Prepare a hardware triggered flyable and one or more detectors.
+
+    Prepare a hardware triggered flyable and one or more detectors with the
+    same trigger. This method constructs TriggerInfo and a static sequence
+    table from required parameters. The table is required to prepare the flyer,
+    and the TriggerInfo is required to prepare the detector(s).
+
+    This prepares all supplied detectors with the same trigger.
+
+    """
+    if not isinstance(detectors, set):
+        detectors = list(detectors)
+
+    if not detectors:
+        raise ValueError("No detectors provided. There must be at least one.")
+
+    deadtime = max(
+        det._controller.get_deadtime(exposure)  # noqa
+        for det in detectors
+    )
+    time_between_frames = max(
+        0, period - number_of_frames * repeats * (exposure + deadtime)
+    )
+
+    trigger_info = TriggerInfo(
+        number_of_events=number_of_frames * repeats,
+        trigger=DetectorTrigger.EDGE_TRIGGER,
+        deadtime=deadtime,
+        livetime=exposure,
+        exposure_timeout=frame_timeout,
+    )
+
+    table = (
+        # Wait for pre-delay then open shutter
+        SeqTable.row(
+            time1=in_micros(0),
+            time2=in_micros(shutter_time),
+            outa2=True,
+        )
+        +
+        # Keeping shutter open, do N triggers
+        SeqTable.row(
+            repeats=number_of_frames,
+            time1=in_micros(exposure),
+            outa1=True,
+            outb1=True,
+            time2=in_micros(deadtime + time_between_frames / number_of_frames),
+            outa2=True,
+        )
+        +
+        # Add the shutter close
+        SeqTable.row(time2=in_micros(shutter_time))
+    )
+
+    table_info = SeqTableInfo(sequence_table=table, repeats=repeats)
+
+    for det in detectors:
+        yield from bps.prepare(det, trigger_info, wait=False, group="prep")
+    yield from bps.prepare(flyer, table_info, wait=False, group="prep")
+    yield from bps.wait(group="prep")
+
+
 def capture_temp(
     linkam: Linkam3,
     flyer: StandardFlyer,
@@ -187,6 +194,7 @@ def capture_temp(
         number_of_frames=num_frames,
         exposure=exposure,
         shutter_time=shutter_time,
+        period=exposure,
     )
     yield from fly_and_collect(
         stream_name=stream_name,
@@ -198,7 +206,7 @@ def capture_temp(
 def capture_linkam_segment(
     linkam: Linkam3,
     flyer: StandardFlyer,
-    detectors: list[StandardDetector],
+    detectors: list[StandardDetector] | set[StandardDetector],
     start: float,
     stop: float,
     num: int,
@@ -214,35 +222,36 @@ def capture_linkam_segment(
     # Set temperature ramp rate to expected for segment
     yield from bps.mv(linkam.ramp_rate, rate)
 
+    ordered_detectors = list(detectors)
     if not fly:
         # Move, stop then collect at each step
         for temp in np.linspace(start, stop, num):
             yield from capture_temp(
-                linkam,
-                flyer,
-                detectors,
-                temp,
-                num_frames,
-                exposure,
-                shutter_time,
-                stream_name,
+                linkam=linkam,
+                flyer=flyer,
+                detectors=ordered_detectors,
+                temp=temp,
+                num_frames=num_frames,
+                exposure=exposure,
+                shutter_time=shutter_time,
+                stream_name=stream_name,
             )
     else:
         # Kick off move, capturing periodically
         yield from prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
             flyer=flyer,
-            detectors=detectors,
+            detectors=ordered_detectors,
             number_of_frames=num * num_frames,
             exposure=exposure,
             shutter_time=shutter_time,
-            period=abs(stop - start / (rate / 60)),  # period in s, dT/(dT/dt)
+            period=abs((stop - start) / (rate / 60)),  # period in s, dT/(dT/dt)
         )
         linkam_group = group_uuid("linkam")
         yield from bps.abs_set(linkam, stop, group=linkam_group, wait=False)
         yield from fly_and_collect(
             stream_name=stream_name,
             flyer=flyer,
-            detectors=detectors,
+            detectors=ordered_detectors,
         )
         # Make sure linkam has finished
         yield from bps.wait(group=linkam_group)

@@ -206,7 +206,7 @@ def capture_temp(
 def capture_linkam_segment(
     linkam: Linkam3,
     flyer: StandardFlyer,
-    detectors: list[StandardDetector],
+    detectors: list[StandardDetector] | set[StandardDetector],
     start: float,
     stop: float,
     num: int,
@@ -227,14 +227,14 @@ def capture_linkam_segment(
         # Move, stop then collect at each step
         for temp in np.linspace(start, stop, num):
             yield from capture_temp(
-                linkam,
-                flyer,
-                ordered_detectors,
-                temp,
-                num_frames,
-                exposure,
-                shutter_time,
-                stream_name,
+                linkam=linkam,
+                flyer=flyer,
+                detectors=ordered_detectors,
+                temp=temp,
+                num_frames=num_frames,
+                exposure=exposure,
+                shutter_time=shutter_time,
+                stream_name=stream_name,
             )
     else:
         # Kick off move, capturing periodically

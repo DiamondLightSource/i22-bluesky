@@ -35,23 +35,109 @@ def test_p38_aravis(
 def test_p38_linkam(
     linkam: Linkam3 = DEFAULT_LINKAM
 ) -> MsgGenerator:
+    LOGGER.info("Testing linkam...")
+    yield from ensure_connected(linkam)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
+    yield from bps.mv(linkam, 27)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
     yield from bps.mv(linkam, 40)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
     data = yield linkam.read()
     LOGGER.info(str(data))
+
+    yield from bps.mv(linkam, 25)
+
+
+@attach_data_session_metadata_decorator()
+def test_p38_linkam_scan(
+    linkam: Linkam3 = DEFAULT_LINKAM
+) -> MsgGenerator:
+    LOGGER.info("Testing linkam scan...")
+    yield from ensure_connected(linkam)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
+    yield from bps.mv(linkam, 27)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
+    yield from bps.mv(linkam, 40)
+    data = yield from bps.rd(linkam.temp)
+    LOGGER.info(str(data))
+
+    data = yield linkam.read()
+    LOGGER.info(str(data))
+
+    yield from bps.mv(linkam, 25)
+
 
 @attach_data_session_metadata_decorator()
 def test_p38_pressure_cell(
     pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL
 ) -> MsgGenerator:
     LOGGER.info("Testing pressure cell...")
+    yield from ensure_connected(pressure_cell)
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.target_pressure)
+    LOGGER.info("Ptarget: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.timeout)
+    LOGGER.info("timeout: " + str(data))
+
+    yield from bps.mv(pressure_cell.controller.target_pressure, 150)
+    yield from bps.mv(pressure_cell.controller.go, True)
+
+    data = yield from bps.rd(pressure_cell.controller.target_pressure)
+    LOGGER.info("Ptarget: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.result)
+    LOGGER.info("Result: " +str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " +str(data))
+
+
+@attach_data_session_metadata_decorator()
+def test_p38_pressure_cell_jump(
+    pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL
+) -> MsgGenerator:
+    LOGGER.info("Testing pressure cell...")
 
     yield from ensure_connected(pressure_cell)
+
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
-    #yield from bps.abs_set(pressure_cell.controller.target_pressure, 210)
-    #yield from bps.mv(pressure_cell.controller.target_pressure, 210)
-    #yield pressure_cell.controller.target_pressure.set(210)
-    
-    LOGGER.info(str(data))
+    LOGGER.info("T1: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.timeout)
+    LOGGER.info("timeout: " + str(data))
+
+    yield from bps.mv(pressure_cell.controller.from_pressure, 150)
+    yield from bps.mv(pressure_cell.controller.to_pressure, 170)
+
+    data = yield from bps.rd(pressure_cell.controller.from_pressure)
+    LOGGER.info("Pjump-from: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.to_pressure)
+    LOGGER.info("Pjump-to: " + str(data))
+
+    # START the jump
+    yield from bps.mv(pressure_cell.controller.jump_ready, True)
+
+    data = yield from bps.rd(pressure_cell.controller.result)
+    LOGGER.info("Result: " +str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " +str(data))
+
 
 @attach_data_session_metadata_decorator()
 def test_p38_tetramm(
@@ -67,7 +153,6 @@ def test_p38_tetramm(
 
     data = yield from bps.rd(tetramm.drv.averaging_time)
     LOGGER.info(str(data))
-
 
 
 @attach_data_session_metadata_decorator()
@@ -91,7 +176,7 @@ def test_p38_tetramm_prepare(
                         livetime=1,
                         multiplier=1,
                         frame_timeout=None)
-    
+
     LOGGER.info("stage tetramm")
     yield from bps.stage_all(tetramm, group="prepare")
 

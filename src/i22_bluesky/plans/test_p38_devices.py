@@ -154,6 +154,13 @@ def test_p38_pressure_cell_setup_trigger(
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
     LOGGER.info("T1: " + str(data))
 
+    data = yield from bps.rd(pressure_cell.pressure_transducers[2].omron_pressure)
+    LOGGER.info("T2: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[3].omron_pressure)
+    LOGGER.info("T3: " + str(data))
+
+
     data = yield from bps.rd(pressure_cell.controller.timeout)
     LOGGER.info("timeout: " + str(data))
 
@@ -162,19 +169,27 @@ def test_p38_pressure_cell_setup_trigger(
     data = yield from bps.rd(pressure_cell_ad.trig.state)
     LOGGER.info("trig-state: " + str(data))
 
-    yield from bps.mv(pressure_cell_ad.trig, True)
+    yield from bps.abs_set(pressure_cell_ad.trig.capture, True)
 
     data = yield from bps.rd(pressure_cell_ad.trig.state)
     LOGGER.info("trig-state: " + str(data))
 
-    while ( yield from bps.rd(pressure_cell_ad.trig.state) != AdcTriggerState.IDLE):
-        data = yield from bps.rd(pressure_cell_ad.trig.state)
+    trigger_state = yield from bps.rd(pressure_cell_ad.trig.state) 
+
+    while (trigger_state != AdcTriggerState.IDLE):
         LOGGER.info("trig-state: " + str(data))
-        bps.sleep(0.2)
+        trigger_state = yield from bps.rd(pressure_cell_ad.trig.state)
+        yield from bps.sleep(0.2)
 
 
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
     LOGGER.info("T1: " +str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[2].omron_pressure)
+    LOGGER.info("T2: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[3].omron_pressure)
+    LOGGER.info("T3: " + str(data))
 
 
 @attach_data_session_metadata_decorator()

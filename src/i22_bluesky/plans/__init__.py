@@ -18,6 +18,8 @@ from .test_p38_devices import (
     test_p38_aravis,
     test_p38_linkam,
     test_p38_pressure_cell,
+    test_p38_pressure_cell_jump,
+    test_p38_pressure_cell_setup_trigger,
     test_p38_tetramm,
     test_p38_tetramm_prepare,
 )
@@ -30,6 +32,8 @@ __all__ = [
     "save_device_for_linkam",
     "make_popping_sound",
     "test_pressure_cell",
+    "test_p38_pressure_cell_jump",
+    "test_p38_pressure_cell_setup_trigger",
     "test_p38_aravis",
     "test_p38_linkam",
     "test_p38_pressure_cell",

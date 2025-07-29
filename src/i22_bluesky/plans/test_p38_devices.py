@@ -16,6 +16,8 @@ from dodal.devices.pressure_jump_cell import (
     PressureJumpCell,
     PumpMotorDirectionState,
 )
+from dodal.devices.areadetector import PressureJumpCellDetector
+from dodal.devices.areadetector.pressurejumpcell_io import ( AdcTriggerState )
 from dodal.devices.tetramm import TetrammDetector
 
 
@@ -23,6 +25,7 @@ from dodal.devices.tetramm import TetrammDetector
 DEFAULT_ARAVIS = inject("d11")
 DEFAULT_LINKAM = inject("linkam")
 DEFAULT_PRESSURE_CELL = inject("high_pressure_xray_cell")
+DEFAULT_PRESSURE_CELL_AD = inject("high_pressure_xray_cell_adc")
 DEFAULT_TETRAMM = inject("i1")
 
 @attach_data_session_metadata_decorator()
@@ -134,6 +137,41 @@ def test_p38_pressure_cell_jump(
 
     data = yield from bps.rd(pressure_cell.controller.result)
     LOGGER.info("Result: " +str(data))
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " +str(data))
+
+
+@attach_data_session_metadata_decorator()
+def test_p38_pressure_cell_setup_trigger(
+    pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL,
+    pressure_cell_ad: PressureJumpCellDetector = DEFAULT_PRESSURE_CELL_AD
+) -> MsgGenerator:
+    LOGGER.info("Testing pressure cell trigger...")
+
+    yield from ensure_connected(pressure_cell)
+
+    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.controller.timeout)
+    LOGGER.info("timeout: " + str(data))
+
+
+    # Arm and start waiting for trigger
+    data = yield from bps.rd(pressure_cell_ad.trig.state)
+    LOGGER.info("trig-state: " + str(data))
+
+    yield from bps.mv(pressure_cell_ad.trig, True)
+
+    data = yield from bps.rd(pressure_cell_ad.trig.state)
+    LOGGER.info("trig-state: " + str(data))
+
+    while ( yield from bps.rd(pressure_cell_ad.trig.state) != AdcTriggerState.IDLE):
+        data = yield from bps.rd(pressure_cell_ad.trig.state)
+        LOGGER.info("trig-state: " + str(data))
+        bps.sleep(0.2)
+
 
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
     LOGGER.info("T1: " +str(data))

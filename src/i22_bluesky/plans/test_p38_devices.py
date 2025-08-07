@@ -9,7 +9,7 @@ from ophyd_async.core import (
     TriggerInfo)
 
 from ophyd_async.epics.adaravis import AravisDetector
-from ophyd_async.plan_stubs import ensure_connected
+from ophyd_async.plan_stubs import ensure_connected, fly_and_collect
 from dodal.devices.linkam3 import Linkam3
 from dodal.devices.pressure_jump_cell import (
     FastValveControlRequest,
@@ -19,7 +19,7 @@ from dodal.devices.pressure_jump_cell import (
 from dodal.devices.areadetector import PressureJumpCellDetector
 from dodal.devices.areadetector.pressurejumpcell_io import ( AdcTriggerState )
 from dodal.devices.tetramm import TetrammDetector
-
+from dodal.plan_stubs.pressure_jump_cell import prepare_fast_pressure_jump
 
 
 DEFAULT_ARAVIS = inject("d11")
@@ -27,6 +27,16 @@ DEFAULT_LINKAM = inject("linkam")
 DEFAULT_PRESSURE_CELL = inject("high_pressure_xray_cell")
 DEFAULT_PRESSURE_CELL_AD = inject("high_pressure_xray_cell_adc")
 DEFAULT_TETRAMM = inject("i1")
+
+def debug_log_pcell_pressures(pcell: PressureJumpCell):
+    data = yield from bps.rd(pcell.pressure_transducers[1].omron_pressure)
+    LOGGER.info("T1: " + str(data))
+
+    data = yield from bps.rd(pcell.pressure_transducers[2].omron_pressure)
+    LOGGER.info("T2: " + str(data))
+
+    data = yield from bps.rd(pcell.pressure_transducers[3].omron_pressure)
+    LOGGER.info("T3: " + str(data))
 
 @attach_data_session_metadata_decorator()
 def test_p38_aravis(
@@ -117,8 +127,7 @@ def test_p38_pressure_cell_jump(
 
     yield from ensure_connected(pressure_cell)
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
-    LOGGER.info("T1: " + str(data))
+    debug_log_pcell_pressures(pressure_cell)
 
     data = yield from bps.rd(pressure_cell.controller.timeout)
     LOGGER.info("timeout: " + str(data))
@@ -138,8 +147,7 @@ def test_p38_pressure_cell_jump(
     data = yield from bps.rd(pressure_cell.controller.result)
     LOGGER.info("Result: " +str(data))
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
-    LOGGER.info("T1: " +str(data))
+    debug_log_pcell_pressures(pressure_cell)
 
 
 @attach_data_session_metadata_decorator()
@@ -151,15 +159,7 @@ def test_p38_pressure_cell_setup_trigger(
 
     yield from ensure_connected(pressure_cell)
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
-    LOGGER.info("T1: " + str(data))
-
-    data = yield from bps.rd(pressure_cell.pressure_transducers[2].omron_pressure)
-    LOGGER.info("T2: " + str(data))
-
-    data = yield from bps.rd(pressure_cell.pressure_transducers[3].omron_pressure)
-    LOGGER.info("T3: " + str(data))
-
+    debug_log_pcell_pressures(pressure_cell)
 
     data = yield from bps.rd(pressure_cell.controller.timeout)
     LOGGER.info("timeout: " + str(data))
@@ -181,15 +181,34 @@ def test_p38_pressure_cell_setup_trigger(
         trigger_state = yield from bps.rd(pressure_cell_ad.trig.state)
         yield from bps.sleep(0.2)
 
+    debug_log_pcell_pressures(pressure_cell)
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
-    LOGGER.info("T1: " +str(data))
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[2].omron_pressure)
-    LOGGER.info("T2: " + str(data))
+@attach_data_session_metadata_decorator()
+def test_p38_pressure_cell_fast_jump(
+    pressure_from: int,
+    pressure_to: int,
+    pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL,
+    pressure_cell_ad: PressureJumpCellDetector = DEFAULT_PRESSURE_CELL_AD,
 
-    data = yield from bps.rd(pressure_cell.pressure_transducers[3].omron_pressure)
-    LOGGER.info("T3: " + str(data))
+) -> MsgGenerator:
+    LOGGER.info(f"Testing pressure cell fast jump, from {pressure_from} to {pressure_to}...")
+
+    debug_log_pcell_pressures(pressure_cell)
+
+    trigger_info = TriggerInfo(
+        trigger= DetectorTrigger.INTERNAL
+    )
+
+    # Setup
+    prepare_fast_pressure_jump(pressure_cell, pressure_from, pressure_to)
+
+    bps.stage_all(pressure_cell_ad, group="prepare")
+    bps.prepare(pressure_cell_ad, trigger_info, group="prepare")
+    bps.kickoff(pressure_cell_ad)
+    bps.complete(pressure_cell_ad)
+
+    debug_log_pcell_pressures(pressure_cell)
 
 
 @attach_data_session_metadata_decorator()

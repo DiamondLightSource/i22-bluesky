@@ -100,19 +100,19 @@ def test_p38_pressure_cell(
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
     LOGGER.info("T1: " + str(data))
 
-    data = yield from bps.rd(pressure_cell.controller.target_pressure)
+    data = yield from bps.rd(pressure_cell.control.target_pressure)
     LOGGER.info("Ptarget: " + str(data))
 
-    data = yield from bps.rd(pressure_cell.controller.timeout)
+    data = yield from bps.rd(pressure_cell.control.timeout)
     LOGGER.info("timeout: " + str(data))
 
-    yield from bps.mv(pressure_cell.controller.target_pressure, 150)
-    yield from bps.mv(pressure_cell.controller.go, True)
+    yield from bps.mv(pressure_cell.control.target_pressure, 150)
+    yield from bps.mv(pressure_cell.control.go, True)
 
-    data = yield from bps.rd(pressure_cell.controller.target_pressure)
+    data = yield from bps.rd(pressure_cell.control.target_pressure)
     LOGGER.info("Ptarget: " + str(data))
 
-    data = yield from bps.rd(pressure_cell.controller.result)
+    data = yield from bps.rd(pressure_cell.control.result)
     LOGGER.info("Result: " +str(data))
 
     data = yield from bps.rd(pressure_cell.pressure_transducers[1].omron_pressure)
@@ -160,22 +160,22 @@ def test_p38_pressure_cell_jump(
 
     yield from debug_log_pcell_pressures(pressure_cell)
 
-    data = yield from bps.rd(pressure_cell.controller.timeout)
+    data = yield from bps.rd(pressure_cell.control.timeout)
     LOGGER.info("timeout: " + str(data))
 
-    yield from bps.mv(pressure_cell.controller.from_pressure, 150)
-    yield from bps.mv(pressure_cell.controller.to_pressure, 170)
+    yield from bps.mv(pressure_cell.control.from_pressure, 150)
+    yield from bps.mv(pressure_cell.control.to_pressure, 170)
 
-    data = yield from bps.rd(pressure_cell.controller.from_pressure)
+    data = yield from bps.rd(pressure_cell.control.from_pressure)
     LOGGER.info("Pjump-from: " + str(data))
 
-    data = yield from bps.rd(pressure_cell.controller.to_pressure)
+    data = yield from bps.rd(pressure_cell.control.to_pressure)
     LOGGER.info("Pjump-to: " + str(data))
 
     # START the jump
-    yield from bps.mv(pressure_cell.controller.jump_ready, True)
+    yield from bps.mv(pressure_cell.control.jump_ready, True)
 
-    data = yield from bps.rd(pressure_cell.controller.result)
+    data = yield from bps.rd(pressure_cell.control.result)
     LOGGER.info("Result: " +str(data))
 
     debug_log_pcell_pressures(pressure_cell)
@@ -192,7 +192,7 @@ def test_p38_pressure_cell_setup_trigger(
 
     yield from debug_log_pcell_pressures(pressure_cell)
 
-    data = yield from bps.rd(pressure_cell.controller.timeout)
+    data = yield from bps.rd(pressure_cell.control.timeout)
     LOGGER.info("timeout: " + str(data))
 
 

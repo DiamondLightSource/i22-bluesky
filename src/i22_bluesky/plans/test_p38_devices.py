@@ -1,4 +1,5 @@
 import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
 from bluesky.utils import MsgGenerator
 from dodal.common import inject
 from dodal.log import LOGGER
@@ -216,6 +217,7 @@ def test_p38_pressure_cell_setup_trigger(
 
 
 @attach_data_session_metadata_decorator()
+@bpp.run_decorator()
 def test_p38_pressure_cell_fast_jump(
     pressure_from: int,
     pressure_to: int,
@@ -233,12 +235,15 @@ def test_p38_pressure_cell_fast_jump(
     )
 
     # Setup
-    prepare_fast_pressure_jump(pressure_cell, pressure_from, pressure_to)
+    yield from prepare_fast_pressure_jump(pressure_cell, pressure_from, pressure_to)
 
-    bps.stage_all(pressure_cell_ad, group="prepare")
-    bps.prepare(pressure_cell_ad, trigger_info, group="prepare")
-    bps.kickoff(pressure_cell_ad)
-    bps.complete(pressure_cell_ad)
+    yield from bps.stage_all(pressure_cell_ad, group="prepare")
+    yield from bps.prepare(pressure_cell_ad, trigger_info, group="prepare")
+
+    # Fly and collect
+    yield from bps.declare_stream(pressure_cell_ad, name="main", collect=True)
+    yield from bps.kickoff(pressure_cell_ad)
+    yield from bps.complete(pressure_cell_ad)
 
     yield from debug_log_pcell_pressures(pressure_cell)
 

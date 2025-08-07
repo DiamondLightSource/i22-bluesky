@@ -17,9 +17,9 @@ from .test_pressure_cell import make_popping_sound
 from .test_p38_devices import (
     test_p38_aravis,
     test_p38_linkam,
-    test_p38_pressure_cell,
     test_p38_pressure_cell_fast_jump,
     test_p38_pressure_cell_jump,
+    test_p38_pressure_cell_pressure,
     test_p38_pressure_cell_setup_trigger,
     test_p38_tetramm,
     test_p38_tetramm_prepare,
@@ -35,6 +35,7 @@ __all__ = [
     "test_pressure_cell",
     "test_p38_pressure_cell_fast_jump",
     "test_p38_pressure_cell_jump",
+    "test_p38_pressure_cell_pressure",
     "test_p38_pressure_cell_setup_trigger",
     "test_p38_aravis",
     "test_p38_linkam",

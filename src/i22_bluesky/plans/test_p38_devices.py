@@ -120,6 +120,37 @@ def test_p38_pressure_cell(
 
 
 @attach_data_session_metadata_decorator()
+def test_p38_pressure_cell_pressure(
+    pressure: int,
+    pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL
+) -> MsgGenerator:
+    LOGGER.info(f"Testing pressure cell pressure = {pressure} ...")
+
+    yield from ensure_connected(pressure_cell)
+
+    yield from debug_log_pcell_pressures(pressure_cell)
+
+    data = yield from bps.rd(pressure_cell.control.timeout)
+    LOGGER.info("timeout: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.control.busy)
+    LOGGER.info("busy: " + str(data))
+
+    # Set the pressure
+    yield from bps.mv(pressure_cell.control, pressure)
+
+    LOGGER.info("pressure mv end")
+
+    data = yield from bps.rd(pressure_cell.control.busy)
+    LOGGER.info("busy: " + str(data))
+
+    data = yield from bps.rd(pressure_cell.control.result)
+    LOGGER.info("Result: " +str(data))
+
+    yield from debug_log_pcell_pressures(pressure_cell)
+
+
+@attach_data_session_metadata_decorator()
 def test_p38_pressure_cell_jump(
     pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL
 ) -> MsgGenerator:
@@ -194,6 +225,7 @@ def test_p38_pressure_cell_fast_jump(
 ) -> MsgGenerator:
     LOGGER.info(f"Testing pressure cell fast jump, from {pressure_from} to {pressure_to}...")
 
+    ensure_connected(pressure_cell)
     debug_log_pcell_pressures(pressure_cell)
 
     trigger_info = TriggerInfo(

@@ -158,7 +158,7 @@ def test_p38_pressure_cell_jump(
 
     yield from ensure_connected(pressure_cell)
 
-    debug_log_pcell_pressures(pressure_cell)
+    yield from debug_log_pcell_pressures(pressure_cell)
 
     data = yield from bps.rd(pressure_cell.controller.timeout)
     LOGGER.info("timeout: " + str(data))
@@ -190,7 +190,7 @@ def test_p38_pressure_cell_setup_trigger(
 
     yield from ensure_connected(pressure_cell)
 
-    debug_log_pcell_pressures(pressure_cell)
+    yield from debug_log_pcell_pressures(pressure_cell)
 
     data = yield from bps.rd(pressure_cell.controller.timeout)
     LOGGER.info("timeout: " + str(data))
@@ -212,7 +212,7 @@ def test_p38_pressure_cell_setup_trigger(
         trigger_state = yield from bps.rd(pressure_cell_ad.trig.state)
         yield from bps.sleep(0.2)
 
-    debug_log_pcell_pressures(pressure_cell)
+    yield from debug_log_pcell_pressures(pressure_cell)
 
 
 @attach_data_session_metadata_decorator()
@@ -226,7 +226,7 @@ def test_p38_pressure_cell_fast_jump(
     LOGGER.info(f"Testing pressure cell fast jump, from {pressure_from} to {pressure_to}...")
 
     ensure_connected(pressure_cell)
-    debug_log_pcell_pressures(pressure_cell)
+    yield from debug_log_pcell_pressures(pressure_cell)
 
     trigger_info = TriggerInfo(
         trigger= DetectorTrigger.INTERNAL
@@ -240,7 +240,7 @@ def test_p38_pressure_cell_fast_jump(
     bps.kickoff(pressure_cell_ad)
     bps.complete(pressure_cell_ad)
 
-    debug_log_pcell_pressures(pressure_cell)
+    yield from debug_log_pcell_pressures(pressure_cell)
 
 
 @attach_data_session_metadata_decorator()

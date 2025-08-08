@@ -217,7 +217,6 @@ def test_p38_pressure_cell_setup_trigger(
 
 
 @attach_data_session_metadata_decorator()
-@bpp.run_decorator()
 def test_p38_pressure_cell_fast_jump(
     pressure_from: int,
     pressure_to: int,
@@ -225,27 +224,31 @@ def test_p38_pressure_cell_fast_jump(
     pressure_cell_ad: PressureJumpCellDetector = DEFAULT_PRESSURE_CELL_AD,
 
 ) -> MsgGenerator:
-    LOGGER.info(f"Testing pressure cell fast jump, from {pressure_from} to {pressure_to}...")
-
     ensure_connected(pressure_cell)
-    yield from debug_log_pcell_pressures(pressure_cell)
 
-    trigger_info = TriggerInfo(
-        trigger= DetectorTrigger.INTERNAL
-    )
+    @bpp.run_decorator()
+    @bpp.stage_decorator([pressure_cell, pressure_cell])
+    def inner() -> MsgGenerator:
+        LOGGER.info(f"Testing pressure cell fast jump, from {pressure_from} to {pressure_to}...")
 
-    # Setup
-    yield from prepare_fast_pressure_jump(pressure_cell, pressure_from, pressure_to)
+        yield from debug_log_pcell_pressures(pressure_cell)
 
-    yield from bps.stage_all(pressure_cell_ad, group="prepare")
-    yield from bps.prepare(pressure_cell_ad, trigger_info, group="prepare")
+        trigger_info = TriggerInfo(
+            trigger= DetectorTrigger.INTERNAL
+        )
 
-    # Fly and collect
-    yield from bps.declare_stream(pressure_cell_ad, name="main", collect=True)
-    yield from bps.kickoff(pressure_cell_ad)
-    yield from bps.complete(pressure_cell_ad)
+        # Setup
+        yield from prepare_fast_pressure_jump(pressure_cell, pressure_from, pressure_to)
 
-    yield from debug_log_pcell_pressures(pressure_cell)
+        yield from bps.prepare(pressure_cell_ad, trigger_info, group="prepare")
+
+        # Fly and collect
+        yield from bps.declare_stream(pressure_cell_ad, name="main", collect=True)
+        yield from bps.kickoff(pressure_cell_ad)
+        yield from bps.complete(pressure_cell_ad)
+
+        yield from debug_log_pcell_pressures(pressure_cell)
+    yield from inner()
 
 
 @attach_data_session_metadata_decorator()

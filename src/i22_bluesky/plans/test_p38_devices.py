@@ -224,7 +224,7 @@ def test_p38_pressure_cell_fast_jump(
     pressure_cell_ad: PressureJumpCellDetector = DEFAULT_PRESSURE_CELL_AD,
 
 ) -> MsgGenerator:
-    ensure_connected(pressure_cell)
+    yield from ensure_connected(pressure_cell)
 
     @bpp.run_decorator()
     @bpp.stage_decorator([pressure_cell, pressure_cell])

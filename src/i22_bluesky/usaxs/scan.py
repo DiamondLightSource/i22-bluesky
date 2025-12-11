@@ -1,3 +1,13 @@
+def darkcurrent_scan() -> None:
+    """Do a dark current scan
+
+    - Make sure fast shutter is closed
+    - Do a 2 sec dark current scan with same acquisition time and gain range
+      as USAXS scans
+    """
+    ...
+
+
 def upstream_scan() -> None:
     """Run an upstream scan.
 
@@ -6,7 +16,6 @@ def upstream_scan() -> None:
     - Sweep fine yaw with correlated motion of the diode
 
     """
-
     ...
 
 

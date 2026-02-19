@@ -7,19 +7,33 @@
 
 # In ScanSpecSeqTableTriggerLogic make GPIO low-> high lines optional.
 
-from dodal.common.beamlines.beamline_utils import (
-    device_factory,
-)
+from functools import cache
+from pathlib import Path
+
+from dodal.device_manager import DeviceManager
 from dodal.devices.motors import Stage, XYStage
 from dodal.utils import BeamlinePrefix, get_beamline_name
-from ophyd_async.core import SingalR
+from ophyd_async.core import (
+    PathProvider,
+    SingalR,
+    StaticPathProvider,
+    UUIDFilenameProvider,
+)
 from ophyd_async.epics.motor import Motor
 
 BL = get_beamline_name("i22")
 PREFIX = BeamlinePrefix(BL)
 
+devices = DeviceManager()
 
-@device_factory()
+
+@devices.fixture
+@cache
+def path_provider() -> PathProvider:
+    return StaticPathProvider(UUIDFilenameProvider(), Path("/tmp"))
+
+
+@devices.factory()
 def usaxs_sample_stage() -> XYStage:
     return XYStage(
         prefix=f"{PREFIX.beamline_prefix}-MO-USAXS-01:",
@@ -49,7 +63,7 @@ class XYawFineYawStage(Stage):
         super().__init__(name=name)
 
 
-@device_factory()
+@devices.factory()
 def upstream_crystal_tower() -> XYawFineYawStage:
     return XYawFineYawStage(
         prefix=f"{PREFIX.beamline_prefix}-MO-USAXS-01:",
@@ -60,7 +74,7 @@ def upstream_crystal_tower() -> XYawFineYawStage:
     )
 
 
-@device_factory()
+@devices.factory()
 def downstream_crystal_tower() -> XYawFineYawStage:
     return XYawFineYawStage(
         prefix=f"{PREFIX.beamline_prefix}-MO-USAXS-01:",

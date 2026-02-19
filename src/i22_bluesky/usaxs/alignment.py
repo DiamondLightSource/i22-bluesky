@@ -1,40 +1,130 @@
+import logging
+
+import lmfit
 import numpy as np
-from bluesky.plan_stubs import mv, read, wait
+from bluesky import Msg
+from bluesky.callbacks import LiveFit
+from bluesky.plan_stubs import mv, rd, wait
 from bluesky.protocols import Movable
 from bluesky.utils import MsgGenerator
 from dodal.beamlines.i22 import dcm
-from dodal.plans import step_scan  # requires dodal #1734 to do step scans
+from dodal.log import LOGGER as DODAL_LOGGER
+from dodal.plans import spec_scan  # requires dodal #1734 to do step scans
+from lmfit.model import Model
 from ophyd_async.core import AsyncReadable
+from scanspec.specs import Range
+
+LOGGER = logging.getLogger("USAXS-Bluesky")
+LOGGER.setLevel("DEBUG")
+LOGGER.parent = DODAL_LOGGER
 
 
-# Common scan types
+# Stubs
+def absolute_scan(
+    motor: Movable,
+    start_point: float,
+    end_point: float,
+    step_size: float,
+    readback_device: AsyncReadable,
+    device_channel_name: str | None = None,
+    fitting_model: Model | None = None,
+    initial_guess: dict | None = None,
+    backlash_correction: bool = True,
+) -> MsgGenerator:
+    """Do a relative scan with backlash correction, return fitting results.
+
+    By default, will attempt to fit data to a gaussian. By default, the motor
+    moves to the inital starting scan position to allow for backlash correction.
+    """
+
+    # Generate your spec
+    spec = Range(
+        motor,
+        start_point,
+        end_point,
+        step_size,
+    )
+
+    try:
+        if not fitting_model:
+            # Define a default gaussian model for fitting if you've not been given one
+            def gaussian(x, A, sigma, v0, x0):
+                return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+
+            fitting_model = lmfit.Model(gaussian)
+            initial_guess = {
+                "A": 2,
+                "sigma": lmfit.Parameter("sigma", 3, min=0),
+                "v0": 0,
+                "x0": (start_point + end_point) / 2,
+            }
+
+        model = fitting_model
+        guess = initial_guess
+
+        # Define your fitting and subscribe
+        lf = LiveFit(
+            model,
+            device_channel_name,
+            {"x": motor.name},
+            guess,
+        )
+        handle = yield Msg("subscribe", None, lf)
+
+        # Scan motor from for spec
+        yield from spec_scan([readback_device], spec=spec)
+
+        yield Msg("unsubscribe", None, handle)
+
+        # Move to starting_position+start_point for backlash correction
+        if backlash_correction:
+            yield from mv(motor, start_point, group="foo")
+            yield from wait(group="foo")
+
+        # Return the results
+        return lf.result.values
+    except AttributeError as ae:
+        LOGGER.warning(
+            "Exception encountered when doing an absolute scan:", exc_info=ae
+        )
+
+
 def relative_scan(
     motor: Movable,
     start_point: float,
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str | None = None,
+    fitting_model: Model | None = None,
+    initial_guess: dict | None = None,
+    backlash_correction: bool = False,
 ) -> MsgGenerator:
-    """Do a relative scan around a point, with backlash correction, return results"""
-    # Prepare the readback device
+    """Do a relative scan with backlash correction, return fitting results.
+
+    By default, will attempt to fit data to a gaussian. By default, the motor
+    moves to its original position.
+    """
 
     # Get motor starting_position
-    starting_pos = yield from read(motor)
-    # Scan motor from (starting_position+start_point) to (starting_position+end_point)
-    # with readback_diode as a detector
-    yield from step_scan(
-        detectors=[readback_device],
-        params={
-            motor: [starting_pos + start_point, starting_pos + end_point, step_size]
-        },
-    )
-    # Move to starting_position+start_point for backlash correction
-    yield from mv(motor, starting_pos + start_point, group="foo")
-    # Do some math with the acquired data?
+    starting_pos = yield from rd(motor)
 
-    # Wait for it to finish moving
-    yield from wait(group="foo")
-    # Return the results
+    results = yield from absolute_scan(
+        motor=motor,
+        start_point=starting_pos + start_point,
+        end_point=starting_pos + end_point,
+        step_size=step_size,
+        readback_device=readback_device,
+        device_channel_name=device_channel_name,
+        fitting_model=fitting_model,
+        initial_guess=initial_guess,
+        backlash_correction=backlash_correction,
+    )
+
+    if not backlash_correction:
+        yield from mv(motor, starting_pos)
+
+    return results
 
 
 def knife_edge_scan(
@@ -43,17 +133,38 @@ def knife_edge_scan(
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str,
 ) -> MsgGenerator:
-    """Do a relative scan and return the position of the edge"""
+    """Do a relative scan and return the position of the edge."""
+
+    # We want to pass through a different lmfit, which fits a gaussian to the
+    # 1st derivative of the scan... Model below needs changing
+    def gaussian(x, A, sigma, v0, x0):
+        return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+
+    fitting_model = lmfit.Model(gaussian)
+    initial_guess = {
+        "A": 2,
+        "sigma": lmfit.Parameter("sigma", 3, min=0),
+        "v0": 0,
+        "x0": (start_point + end_point) / 2,
+    }
+
     # Do a relative_scan
-    yield from relative_scan(
+    results = yield from relative_scan(
         motor=motor,
         start_point=start_point,
         end_point=end_point,
         step_size=step_size,
         readback_device=readback_device,
+        device_channel_name=device_channel_name,
+        fitting_model=fitting_model,
+        initial_guess=initial_guess,
+        backlash_correction=True,
     )
-    # Return the edge position (one gaussian fit to the 1st derivative peak)
+    # Return position of the edge
+    return results["x0"]
+    # Warn if position is outside scan region
 
 
 def peak_scan(
@@ -62,17 +173,28 @@ def peak_scan(
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str,
 ) -> MsgGenerator:
-    """Do a relative scan and return the position of the peak"""
+    """Do a relative scan and return the position of the peak."""
     # Do a relative_scan
-    yield from relative_scan(
+    results = yield from relative_scan(
         motor=motor,
         start_point=start_point,
         end_point=end_point,
         step_size=step_size,
         readback_device=readback_device,
+        device_channel_name=device_channel_name,
+        backlash_correction=True,
     )
-    # Return the peak position (one gaussian fit to the peak)
+    # Return the peak position
+    peak_position = results["x0"]
+    if peak_position < min(start_point, end_point) or peak_position > max(
+        start_point, end_point
+    ):
+        raise ValueError(
+            f"Peak position found ({peak_position}) was outside bounds of scan."
+        )
+    return peak_position
 
 
 def expanding_peak_scan(
@@ -81,6 +203,7 @@ def expanding_peak_scan(
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str,
     scan_range_factors: list[float] = (1, 2, 5),
 ) -> MsgGenerator:
     """Do a peak_scan, ensure a peak intensity over a threshold over an expanding range.
@@ -91,18 +214,23 @@ def expanding_peak_scan(
     peak_present = False
     for scan_range_factor in scan_range_factors:
         if not peak_present:
-            yield from relative_scan(
+            results = yield from relative_scan(
                 motor=motor,
                 start_point=start_point * scan_range_factor,
                 end_point=end_point * scan_range_factor,
                 step_size=step_size,
                 readback_device=readback_device,
+                device_channel_name=device_channel_name,
+                backlash_correction=True,
             )
+    #       All this logic still needs to happen:
     #       fit a peak
     #       if peak_top > (peak_offset * 1e1): # Top of peak is more than 1 order of
     #                                            magnitude above background
     #           peak_present = True
     # Return the peak position
+    return results
+    # Warn if position is outside scan region
 
 
 def channel_scan(
@@ -111,17 +239,38 @@ def channel_scan(
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str,
 ) -> MsgGenerator:
-    """Do a relative scan and return the position of the centre"""
+    """Do a relative scan and return the position of the centre."""
+
+    # Find the centre of two edges, by fitting two gaussians to the 1st derivative
+    # peaks... Model below needs changing
+    def gaussian(x, A, sigma, v0, x0):
+        return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+
+    fitting_model = lmfit.Model(gaussian)
+    initial_guess = {
+        "A": 2,
+        "sigma": lmfit.Parameter("sigma", 3, min=0),
+        "v0": 0,
+        "x0": (start_point + end_point) / 2,
+    }
+
     # Do a relative_scan
-    yield from relative_scan(
+    results = yield from relative_scan(
         motor=motor,
         start_point=start_point,
         end_point=end_point,
         step_size=step_size,
         readback_device=readback_device,
+        device_channel_name=device_channel_name,
+        fitting_model=fitting_model,
+        initial_guess=initial_guess,
+        backlash_correction=True,
     )
     # Return the centre of the edges (two gaussians fit to the 1st derivative peaks)
+    return results["x0"]
+    # Warn if position is outside scan region
 
 
 def max_val_scan(
@@ -130,17 +279,38 @@ def max_val_scan(
     end_point: float,
     step_size: float,
     readback_device: AsyncReadable,
+    device_channel_name: str,
 ) -> MsgGenerator:
-    """Do a relative scan and return the position maximum value"""
+    """Do a relative scan and return the position maximum value."""
+
+    # Find the position of the maximum value... this doesn't need to go through
+    # lmfit... but not sure how to do this otherwise???
+    def gaussian(x, A, sigma, v0, x0):
+        return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+
+    fitting_model = lmfit.Model(gaussian)
+    initial_guess = {
+        "A": 2,
+        "sigma": lmfit.Parameter("sigma", 3, min=0),
+        "v0": 0,
+        "x0": (start_point + end_point) / 2,
+    }
+
     # Do a relative_scan
-    yield from relative_scan(
+    results = yield from relative_scan(
         motor=motor,
         start_point=start_point,
         end_point=end_point,
         step_size=step_size,
         readback_device=readback_device,
+        device_channel_name=device_channel_name,
+        fitting_model=fitting_model,
+        initial_guess=initial_guess,
+        backlash_correction=True,
     )
     # Return the position of the maximum value
+    return results["x0"]
+    # Warn if position is outside scan region
 
 
 # Shared Alignment Routines
@@ -150,13 +320,13 @@ def parallel_condition_refiner(
     readback_device: AsyncReadable,
     yaw_value: float,
 ) -> MsgGenerator:
-    """Iteratively refine position of crystal to ensure it is parallel to beam"""
+    """Iteratively refine position of crystal to ensure it is parallel to beam."""
 
     number_of_iterations = 0
     on_peak = False
     while not on_peak:
         # Get starting position of yaw motor
-        yaw_starting_pos = yield from read(yaw_motor)
+        yaw_starting_pos = yield from rd(yaw_motor)
         # Do a max_val_scan of the yaw motor (-num to +num, in steps of num (3 points))
         yaw_pos = yield from max_val_scan(
             motor=yaw_motor,
@@ -264,10 +434,10 @@ def align_crystal(
     yield from mv(x_motor, x_pos, group="foo")
     yield from wait(group="foo")
     # Get starting position of diode_x, add 12.39 mm and move it there
-    readback_motor_pos = yield from read(readback_motor)
+    readback_motor_pos = yield from rd(readback_motor)
     yield from mv(readback_motor, readback_motor_pos + 12.39)
     # Get the energy you're at
-    energy = yield from read(dcm)
+    energy = yield from rd(dcm)
     h = 6.6261e-34
     c = 2.9979e8
     si_d_spacing = 1.920155716e-10  # https://physics.nist.gov/cgi-bin/cuu/Value?d220sil
@@ -275,7 +445,7 @@ def align_crystal(
     energy_in_joules = energy / conversion_factor
     bragg_angle = 0.5 * np.degrees(np.asin((h * c) / (si_d_spacing * energy_in_joules)))
     # Get starting position of yaw, add bragg_angle for energy and move it there
-    yaw_pos = yield from read(yaw_motor)
+    yaw_pos = yield from rd(yaw_motor)
     yield from mv(yaw_motor, yaw_pos + bragg_angle, group="foo")
     yield from wait(group="foo")
 

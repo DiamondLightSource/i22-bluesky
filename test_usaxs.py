@@ -1,4 +1,12 @@
-"""Used for tutorial `Using Devices`."""
+"""
+In ophyd-async>src>ophyd_async>sim>_pattern_generator.py>generate_interesting_pattern
+replace line 34 with:
+    A = channel
+    x0 = 0
+    sigma = 1
+    v0 = offset
+    return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+"""
 
 import bluesky.plan_stubs as bps  # noqa: F401
 import bluesky.plans as bp  # noqa: F401
@@ -38,8 +46,8 @@ print(f"Initial position of motor is: {result.plan_result}")
 
 RE(bps.abs_set(stage.x.velocity, 10))
 
-result = RE(peak_scan(stage.x, -10, 10, 5, pdet, "pdet-channel-1-value"))
-print(result.plan_result)
+result = RE(peak_scan(stage.x, -1, 1, 0.25, pdet, "pdet-channel-1-value"))
+# result = RE(absolute_scan(stage.x, -1, 1, 0.5, pdet, "pdet-channel-1-value"))
 
 result = RE(bps.rd(stage.x))
 print(f"Final position of motor is: {result.plan_result}")

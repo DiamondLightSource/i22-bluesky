@@ -7,7 +7,8 @@ from bluesky.callbacks import LiveFit
 from bluesky.plan_stubs import mv, rd, wait
 from bluesky.protocols import Movable
 from bluesky.utils import MsgGenerator
-from dodal.beamlines.i22 import dcm
+
+# from dodal.beamlines.i22 import dcm
 from dodal.log import LOGGER as DODAL_LOGGER
 from dodal.plans import spec_scan  # requires dodal #1734 to do step scans
 from lmfit.model import Model
@@ -53,9 +54,9 @@ def absolute_scan(
 
             fitting_model = lmfit.Model(gaussian)
             initial_guess = {
-                "A": 2,
+                "A": 1000,
                 "sigma": lmfit.Parameter("sigma", 3, min=0),
-                "v0": 0,
+                "v0": 10000,
                 "x0": (start_point + end_point) / 2,
             }
 
@@ -82,6 +83,8 @@ def absolute_scan(
             yield from wait(group="foo")
 
         # Return the results
+        print(f"Initial guess: {guess}")
+        print(f"Fitting results: {lf.result.values}")
         return lf.result.values
     except AttributeError as ae:
         LOGGER.warning(
@@ -437,7 +440,8 @@ def align_crystal(
     readback_motor_pos = yield from rd(readback_motor)
     yield from mv(readback_motor, readback_motor_pos + 12.39)
     # Get the energy you're at
-    energy = yield from rd(dcm)
+    # energy = yield from rd(dcm)
+    energy = 18
     h = 6.6261e-34
     c = 2.9979e8
     si_d_spacing = 1.920155716e-10  # https://physics.nist.gov/cgi-bin/cuu/Value?d220sil

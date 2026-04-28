@@ -70,6 +70,7 @@ def absolute_scan(
             {"x": motor.name},
             guess,
         )
+
         handle = yield Msg("subscribe", None, lf)
 
         # Scan motor from for spec

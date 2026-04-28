@@ -1,16 +1,20 @@
 """
 In ophyd-async>src>ophyd_async>sim>_pattern_generator.py>generate_interesting_pattern
 replace line 34 with:
-    A = channel
+    A = channel * 100
     x0 = 0
     sigma = 1
     v0 = offset
     return A * np.exp(-((x - x0) ** 2) / (2 * sigma**2)) + v0
+In ophyd-async>src>ophyd_async>sim>_point_detector.py>SimPointDetector
+replace line 83 with:
+    setter(int(point))
 """
 
 import bluesky.plan_stubs as bps  # noqa: F401
 import bluesky.plans as bp  # noqa: F401
 import bluesky.preprocessors as bpp  # noqa: F401
+from bluesky.callbacks import PeakStats
 from bluesky.callbacks.best_effort import BestEffortCallback
 from bluesky.run_engine import RunEngine
 from ophyd_async import sim
@@ -46,8 +50,12 @@ print(f"Initial position of motor is: {result.plan_result}")
 
 RE(bps.abs_set(stage.x.velocity, 10))
 
-result = RE(peak_scan(stage.x, -1, 1, 0.25, pdet, "pdet-channel-1-value"))
+pp = PeakStats(stage.x, pdet)
+
+result = RE(peak_scan(stage.x, -1, 1, 0.5, pdet, "pdet-channel-1-value"), pp)
 # result = RE(absolute_scan(stage.x, -1, 1, 0.5, pdet, "pdet-channel-1-value"))
+
+print(f"PeakStatsResults: {pp.max}")
 
 result = RE(bps.rd(stage.x))
 print(f"Final position of motor is: {result.plan_result}")

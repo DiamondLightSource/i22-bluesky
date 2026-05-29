@@ -3,6 +3,8 @@
 [![PyPI](https://img.shields.io/pypi/v/i22-bluesky.svg)](https://pypi.org/project/i22-bluesky)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
+## This repository is archived, new i22 plans should be added to https://github.com/DiamondLightSource/saxs-bluesky
+
 # i22_bluesky
 
 Plans and behaviours specific to the i22 beamline at DiamondLightSource.

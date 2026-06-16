@@ -3,7 +3,6 @@ from bluesky.utils import MsgGenerator
 from dodal.devices.pressure_jump_cell import (
     FastValveControlRequest,
     PressureJumpCell,
-    PumpMotorDirectionState,
 )
 
 from i22_bluesky.util.baseline import DEFAULT_PRESSURE_CELL
@@ -30,27 +29,25 @@ def lower_pressure(
     pressure_cell: PressureJumpCell = DEFAULT_PRESSURE_CELL,
     target_pressure: float = 10,
 ) -> MsgGenerator:
-    readout = yield pressure_cell.pressure_transducers[3].omron_pressure.read()
+    readout = yield from bps.read(pressure_cell.pressure_transducers[3].omron_pressure)
     if readout < target_pressure:
         yield from ({})
     """
     for lower 6 must be open
     """
-    # todo not sure what is the difference exactly
-    yield from bps.read(
-        pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
+    yield from bps.mv(
+        pressure_cell.all_valves_control.valve_control[6], FastValveControlRequest.OPEN
     )
-    yield pressure_cell.all_valves_control.set_valve(6, FastValveControlRequest.OPEN)
+
     # the pressure lowering itself
-    yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.REVERSE)
-    yield pressure_cell.pump.pump_position.set(target_pressure)
+    yield from bps.mv(pressure_cell.control, target_pressure)
 
     # in intervals check the pressure until reaches the target pressure
     while readout > target_pressure:
         # todo consider adding just read_cell method on the cell
         # to read the omron pressure at the third transducer
         readout = yield from bps.read(
-            pressure_cell.pressure_transducers[3], "omron_pressure"
+            pressure_cell.pressure_transducers[3].omron_pressure
         )
 
     assert target_pressure >= readout
@@ -64,16 +61,20 @@ def raise_pressure(
     for raise 5 must be open
 
     """
-    yield pressure_cell.all_valves_control.set_valve(5, FastValveControlRequest.OPEN)
+    yield from bps.mv(
+        pressure_cell.all_valves_control.valve_control[5], FastValveControlRequest.OPEN
+    )
 
     # the pressure raising itself
-    yield pressure_cell.pump.pump_motor_direction(PumpMotorDirectionState.FORWARD)
-    pressure_cell.pump.pump_position.set(target_pressure)
-    readout = yield pressure_cell.pressure_transducers[3].omron_pressure.read()
+    yield from bps.mv(pressure_cell.control, target_pressure)
+
+    readout = yield from bps.read(pressure_cell.pressure_transducers[3].omron_pressure)
 
     # in intervals check the pressure until reaches the target pressure
     while readout < target_pressure:
-        readout = yield pressure_cell.pressure_transducers[3].omron_pressure.read()
+        readout = yield from bps.rd(
+            pressure_cell.pressure_transducers[3].omron_pressure
+        )
 
     assert readout >= target_pressure
 
@@ -85,5 +86,5 @@ async def prepare_pressure_cell(
     # pressure 1 and 3 must be less than 50 bar
     # one connects the pump to the
 
-    pressure_cell.all_valves_control.fast_valve_control[3].set()
     # todo not sure if need to add pressure readouts at the valves in the device
+    pass
